@@ -13,7 +13,6 @@ export class WebglComponent implements AfterViewInit, OnChanges {
   private gl!: WebGLRenderingContext;
 
   ngAfterViewInit() {
-    // Get the WebGL context from the canvas
     this.gl = this.canvasRef.nativeElement.getContext('webgl')!;
     if (!this.gl) {
       console.error('WebGL not supported!');
@@ -29,33 +28,28 @@ export class WebglComponent implements AfterViewInit, OnChanges {
     }
   }
 
-  // Initialize WebGL by setting up the viewport and clear color.
+  // Initialize WebGL settings.
   initWebGL() {
-    // Set the viewport to match the canvas size
     this.gl.viewport(0, 0, this.canvasRef.nativeElement.width, this.canvasRef.nativeElement.height);
-    // Set a clear color (e.g., dark gray)
     this.gl.clearColor(0.1, 0.1, 0.1, 1.0);
   }
 
-  // Use requestAnimationFrame for continuous rendering.
+  // Render loop.
   render() {
-    // Optionally, update clear color dynamically for a demo effect.
-    // For instance, make the red component pulse over time.
+    // Update clear color using a simple demo animation for now.
     const time = Date.now() * 0.001;
-    const red = (Math.sin(time) * 0.5) + 0.5; // oscillates between 0 and 1
+    const red = (Math.sin(time) * 0.5) + 0.5;
     this.gl.clearColor(red, 0.1, 0.1, 1.0);
-
-    // Clear the canvas with the specified clear color
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-
-    // Continue rendering the next frame
     requestAnimationFrame(() => this.render());
   }
 
-  // Update uniforms or shader parameters based on the current settings.
+  // Update shader uniforms or effects based on settings.
   updateEffects() {
-    // For example, update shader uniforms with this.settings values.
-    console.log('Updating effects with settings:', this.settings);
-    // Add your uniform update logic here.
+    console.log('Updated settings:', this.settings);
+    // Here you would update your WebGL shader uniforms with new settings.
+    // For example:
+    // this.gl.uniform1f(oscillationFrequencyLocation, this.settings.oscillationFrequency);
+    // etc.
   }
 }

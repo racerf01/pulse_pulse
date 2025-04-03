@@ -9,7 +9,7 @@ import { Component, Output, EventEmitter } from '@angular/core';
 export class SidebarComponent {
   @Output() settingsChange = new EventEmitter<any>();
 
-  // Define default settings for the motion & temporal effects
+  // Define default settings
   oscillationFrequency: number = 1;
   oscillationAmplitude: number = 1;
   feedbackEnabled: boolean = false;
@@ -17,7 +17,7 @@ export class SidebarComponent {
   blurIntensity: number = 5;
   timeRemapSpeed: number = 1;
 
-  // Emit the updated settings whenever a control changes
+  // Emit updated settings when any control is changed.
   onChange() {
     this.settingsChange.emit({
       oscillationFrequency: this.oscillationFrequency,
