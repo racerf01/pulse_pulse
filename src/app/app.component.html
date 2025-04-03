@@ -1,7 +1,7 @@
 <div class="app-container">
-  <!-- WebGL Component: receives settings via binding -->
+  <!-- WebGL component receives the current settings -->
   <app-webgl [settings]="currentSettings"></app-webgl>
 
-  <!-- Sidebar Component: emits changes to settings -->
+  <!-- Sidebar component emits settings changes -->
   <app-sidebar (settingsChange)="updateSettings($event)"></app-sidebar>
 </div>

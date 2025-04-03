@@ -19,8 +19,9 @@ export class AppComponent {
     timeRemapSpeed: 1
   };
 
-  // This method updates the settings based on the values emitted by the Sidebar.
+  // This function will be called when the sidebar emits new settings.
   updateSettings(newSettings: any) {
+    console.log('AppComponent received settings:', newSettings);
     this.currentSettings = { ...newSettings };
-  }
+  }  
 }

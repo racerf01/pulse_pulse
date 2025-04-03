@@ -3,7 +3,7 @@ import { Component, Output, EventEmitter } from '@angular/core';
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
-  styleUrls: ['./sidebar.component.scss'], 
+  styleUrls: ['./sidebar.component.scss'],
   standalone: false
 })
 export class SidebarComponent {
@@ -19,13 +19,15 @@ export class SidebarComponent {
 
   // Emit updated settings when any control is changed.
   onChange() {
-    this.settingsChange.emit({
+    const settings = {
       oscillationFrequency: this.oscillationFrequency,
       oscillationAmplitude: this.oscillationAmplitude,
       feedbackEnabled: this.feedbackEnabled,
       blurType: this.blurType,
       blurIntensity: this.blurIntensity,
       timeRemapSpeed: this.timeRemapSpeed
-    });
-  }
+    };
+    console.log('Sidebar emitting settings:', settings);
+    this.settingsChange.emit(settings);
+  }  
 }
