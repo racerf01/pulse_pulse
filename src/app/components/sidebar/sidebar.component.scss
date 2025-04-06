@@ -1,5 +1,6 @@
 :host {
     padding: 10px;
+    padding-right: 5px;
     overflow-y: auto;
     overflow-x: hidden;
     /* Firefox scrollbar settings */
@@ -125,3 +126,33 @@
     grid-column-gap: 16px;
 
 }
+
+.eq-container {
+    display: flex;
+    justify-content: space-between;           /* space between each slider */
+    align-items: flex-end; /* align slider bottoms */
+    padding: 10px;
+}
+
+.eq-lines {
+    width: 20px;
+    height: 220px;
+    pointer-events: none;  /* Allows slider interaction */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;  /* Evenly space lines vertically */
+    margin-bottom: 20px;
+}
+
+/* Each horizontal line */
+.eq-line {
+    height: 3px;
+    background-color: #606060;  /* Change line color as needed */
+    width: 100%;
+    border-radius: 100px;
+}
+
+.eq-line.light {
+    background-color: #fff;  /* Change line color as needed */
+}
+
