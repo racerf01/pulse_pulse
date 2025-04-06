@@ -1,0 +1,77 @@
+/* Each knob + label grouping */
+.knob-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Circular knob */
+.knob {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    background-color: #fff; /* white circle */
+    border-radius: 50%;
+    box-shadow: 0 0 2px rgba(0,0,0,0.4); /* subtle shadow (optional) */
+}
+
+/* Orange indicator at the top of the knob */
+.knob-indicator {
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 30px;
+    background-color: #ff4500; /* orange line */
+    border-radius: 10px;
+}
+
+.corner {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: #606060;
+}
+  
+  /* Position each corner circle using negative margins for precise alignment */
+.top-left {
+    top: 0;
+    left: 0;
+    margin-top: -1.5px;
+    margin-left: -1.5px;
+}
+  
+.top-right {
+    top: 0;
+    right: 0;
+    margin-top: -1.5px;
+    margin-right: -1.5px;
+}
+  
+.bottom-left {
+    bottom: 0;
+    left: 0;
+    margin-bottom: -1.5px;
+    margin-left: -1.5px;
+}
+  
+.bottom-right {
+    bottom: 0;
+    right: 0;
+    margin-bottom: -1.5px;
+    margin-right: -1.5px;
+}
+  
+
+/* Label under the knob */
+.knob-label {
+    margin-top: 8px;
+    font-size: 10px;
+    color: #fff;
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+

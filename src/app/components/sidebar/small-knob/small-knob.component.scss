@@ -1,0 +1,72 @@
+.knob-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+  
+/* Base knob style */
+.knob {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    background-color: #fff; /* White circle */
+    border-radius: 50%;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+}
+  
+/* Orange indicator line */
+.knob-indicator {
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 14px;
+    background-color: #ff4500; /* orange line */
+    border-radius: 1px;
+}
+
+/* Small corner circles */
+.corner {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: #606060;
+}
+  
+/* Corner positions */
+.top-left {
+    top: 0;
+    left: 0;
+    margin-top: -2px;
+    margin-left: -2px;
+}
+.top-right {
+    top: 0;
+    right: 0;
+    margin-top: -2px;
+    margin-right: -2px;
+}
+.bottom-left {
+    bottom: 0;
+    left: 0;
+    margin-bottom: -2px;
+    margin-left: -2px;
+}
+.bottom-right {
+    bottom: 0;
+    right: 0;
+    margin-bottom: -2px;
+    margin-right: -2px;
+}
+
+/* Knob label */
+.knob-label {
+    margin-top: 8px;
+    font-size: 10px;
+    color: #ccc;
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+}

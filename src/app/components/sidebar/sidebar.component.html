@@ -19,58 +19,17 @@
 
 
 <div class="sidebar-header-sub">Colors</div>
-
-<!-- Container for color swatches -->
-<div class="color-container">
-  <!-- Up to 5 color circles -->
-  <div class="color-swatch" style="background-color: #0D2E70;"></div>
-  <div class="color-swatch" style="background-color: #4A6373;"></div>
-  <div class="color-swatch" style="background-color: #5E97B8;"></div>
-  <div class="color-swatch" style="background-color: #8AB9D8;"></div>
-  <div class="color-swatch" style="background-color: #124E8F;"></div>
-
-  <!-- Plus button to add a new color -->
-  <div class="color-swatch add-color">+</div>
-</div>
+<app-colors-panel></app-colors-panel>
 
 <div class="sidebar-header-sub">Color Effects</div>
 
 <div class="knob-container">
   <!-- Knob 1 -->
-  <div class="knob-control">
-    <div class="knob">
-      <div class="knob-indicator"></div>
-      <div class="corner top-left"></div>
-      <div class="corner top-right"></div>
-      <div class="corner bottom-left"></div>
-      <div class="corner bottom-right"></div>
-    </div>
-    <div class="knob-label">hue shift</div>
-  </div>
-
+  <app-medium-knob></app-medium-knob>
   <!-- Knob 2 -->
-  <div class="knob-control">
-    <div class="knob">
-      <div class="knob-indicator"></div>
-      <div class="corner top-left"></div>
-      <div class="corner top-right"></div>
-      <div class="corner bottom-left"></div>
-      <div class="corner bottom-right"></div>
-    </div>
-    <div class="knob-label">saturation</div>
-  </div>
-
+  <app-medium-knob></app-medium-knob>
   <!-- Knob 3 -->
-  <div class="knob-control">
-    <div class="knob">
-      <div class="knob-indicator"></div>
-      <div class="corner top-left"></div>
-      <div class="corner top-right"></div>
-      <div class="corner bottom-left"></div>
-      <div class="corner bottom-right"></div>
-    </div>
-    <div class="knob-label">brightness</div>
-  </div>
+  <app-medium-knob></app-medium-knob>
 </div>
 
 <div class="sidebar-header-sub">
@@ -87,6 +46,18 @@
 </div>
 
 <div class="sidebar-header-sub"> Shape & Geometry Effects </div>
+<div class="shape-geometry-container">
+  <div class="knobs-grid">
+    <app-small-knob></app-small-knob>
+    <app-small-knob></app-small-knob>
+    <app-small-knob></app-small-knob>
+    <app-small-knob></app-small-knob>
+    <app-small-knob></app-small-knob>
+    <app-small-knob></app-small-knob>
+  </div>
+  <app-rythm-bar></app-rythm-bar>
+  <app-master-knob></app-master-knob>
+</div>
 
 
 <div class="sidebar-header-sub"> Noise Deformation </div>

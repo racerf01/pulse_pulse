@@ -1,0 +1,14 @@
+.vertical-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+/* Individual circles in the vertical selector */
+.selector-circle {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #606060; /* Adjust color as needed */
+}
