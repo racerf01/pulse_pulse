@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, Renderer2 } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, Renderer2 } from '@angular/core';
 
 @Component({
   selector: 'app-slider',
@@ -8,8 +8,9 @@ import { Component, ElementRef, Input, Renderer2 } from '@angular/core';
 })
 export class SliderComponent {
   @Input() label?: string;
+  @Output() valueChange: EventEmitter<number> = new EventEmitter<number>();
 
-  knobPosition = 50;  // Start in the middle (0% = top, 100% = bottom)
+  knobPosition = 50;  // starting value in percentage (0-100)
   private dragging = false;
   private trackTop = 0;
   private trackHeight = 0;
@@ -22,42 +23,46 @@ export class SliderComponent {
   startDrag(event: MouseEvent) {
     event.preventDefault();
 
-    // Get the track's position and size
     const track = this.elRef.nativeElement.querySelector('.slider-track');
     const rect = track.getBoundingClientRect();
     this.trackTop = rect.top;
     this.trackHeight = rect.height;
-
-    // Indicate we are dragging
     this.dragging = true;
 
-    // Listen for mousemove and mouseup on the window
     this.moveListener = this.renderer.listen('window', 'mousemove', (e) => this.onDrag(e));
     this.upListener = this.renderer.listen('window', 'mouseup', () => this.endDrag());
   }
 
   onDrag(event: MouseEvent) {
     if (!this.dragging) return;
-
+  
     let y = event.clientY;
-
-    // Constrain the knob to stay within the track
     const maxY = this.trackTop + this.trackHeight;
     if (y < this.trackTop) y = this.trackTop;
     if (y > maxY) y = maxY;
-
-    // Calculate the offset within the track
+  
     const offset = y - this.trackTop;
-    // Convert to percentage
-    const percent = (offset / this.trackHeight) * 100;
+    let percent = (offset / this.trackHeight) * 100;
+  
+    // Cap the percentage at 90%
+    if (percent < 6) {
+      percent = 6;
+    }
 
+    if (percent > 94) {
+      percent = 94;
+    }
+    
     this.knobPosition = percent;
-  }
+    this.valueChange.emit(percent);
+  }  
 
   endDrag() {
     this.dragging = false;
-    // Detach event listeners
     if (this.moveListener) this.moveListener();
     if (this.upListener) this.upListener();
+    
+    // Optionally emit final value on drag end
+    this.valueChange.emit(this.knobPosition);
   }
 }

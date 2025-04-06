@@ -10,7 +10,7 @@
     <div class="status"></div>
   </div>
   
-  <select class="dropdown-selector">
+  <select class="dropdown-selector" (change)="updateDropdown('inputOption', $event)">
     <option value="option1">Option 1</option>
     <option value="option2">Option 2</option>
     <option value="option3">Option 3</option>
@@ -23,9 +23,9 @@
 
 <div class="sidebar-header-sub">Color Effects</div>
 <div class="knob-container">
-  <app-medium-knob [label]="'hue shift'"></app-medium-knob>
-  <app-medium-knob [label]="'saturation'"></app-medium-knob>
-  <app-medium-knob [label]="'brightness'"></app-medium-knob>
+  <app-medium-knob (valueChange)="updateShapeEffect('hue shift', $event)" [label]="'hue shift'"></app-medium-knob>
+  <app-medium-knob (valueChange)="updateShapeEffect('saturation', $event)" [label]="'saturation'"></app-medium-knob>
+  <app-medium-knob (valueChange)="updateShapeEffect('brightness', $event)" [label]="'brightness'"></app-medium-knob>
 </div>
 
 <div class="sidebar-header-sub">
@@ -33,25 +33,24 @@
     <a> Color Filter </a>
   </div>
   
-  <select class="dropdown-selector">
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
-    <option value="option3">Option 3</option>
+  <select class="dropdown-selector" (change)="updateDropdown('inputOption', $event)">
+    <option value="option1">On</option>
+    <option value="option2">Off</option>
   </select>
 </div>
 
 <div class="sidebar-header-sub"> Shape & Geometry Effects </div>
 <div class="shape-geometry-container">
   <div class="knobs-grid">
-    <app-small-knob [label]="'scale'"></app-small-knob>
-    <app-small-knob [label]="'rotation'"></app-small-knob>
-    <app-small-knob [label]="'translation'"></app-small-knob>
-    <app-small-knob [label]="'distortion'"></app-small-knob>
-    <app-small-knob [label]="'morphing'"></app-small-knob>
-    <app-small-knob [label]="'ripple'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('scale', $event)" [label]="'scale'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('rotation', $event)" [label]="'rotation'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('translation', $event)" [label]="'translation'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('distortion', $event)" [label]="'distortion'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('morphing', $event)" [label]="'morphing'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('ripple', $event)" [label]="'ripple'"></app-small-knob>
   </div>
   <app-rythm-bar></app-rythm-bar>
-  <app-master-knob [label]="'master'"></app-master-knob>
+  <app-master-knob [label]="'master'" (valueChange)="updateMaster($event)"></app-master-knob>
 </div>
 
 <div class="sidebar-header-sub">
@@ -59,18 +58,17 @@
     <a> Noise Deformation </a>
   </div>
   
-  <select class="dropdown-selector">
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
-    <option value="option3">Option 3</option>
+  <select class="dropdown-selector" (change)="updateDropdown('inputOption', $event)">
+    <option value="option1">On</option>
+    <option value="option2">Off</option>
   </select>
 </div>
 
 <div class="sidebar-header-sub"> Motion & Temporal Effects </div>
 <div class="knob-container">
-  <app-medium-knob [label]="'oscillation'"></app-medium-knob>
-  <app-medium-knob [label]="'pulsation'"></app-medium-knob>
-  <app-medium-knob [label]="'speed'"></app-medium-knob>
+  <app-medium-knob (valueChange)="updateShapeEffect('oscillation', $event)" [label]="'oscillation'"></app-medium-knob>
+  <app-medium-knob (valueChange)="updateShapeEffect('pulsation', $event)" [label]="'pulsation'"></app-medium-knob>
+  <app-medium-knob (valueChange)="updateShapeEffect('speed', $event)" [label]="'speed'"></app-medium-knob>
 </div>
 
 <div class="sidebar-header-sub">
@@ -79,36 +77,35 @@
   </div>
   
   <select class="dropdown-selector">
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
-    <option value="option3">Option 3</option>
+    <option value="option1">On</option>
+    <option value="option2">Off</option>
   </select>
 </div>
 
 <div class="sidebar-header-sub"> Texture & Special Effects </div>
 <div class="shape-geometry-container">
   <div class="knobs-grid">
-    <app-small-knob [label]="'noise'"></app-small-knob>
-    <app-small-knob [label]="'glitch'"></app-small-knob>
-    <app-small-knob [label]="'texturing'"></app-small-knob>
-    <app-small-knob [label]="'pixelation'"></app-small-knob>
-    <app-small-knob [label]="'mosaic'"></app-small-knob>
-    <app-small-knob [label]="'blend'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('oscillation', $event)" [label]="'noise'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('oscillation', $event)" [label]="'glitch'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('oscillation', $event)" [label]="'texturing'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('oscillation', $event)" [label]="'pixelation'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('oscillation', $event)" [label]="'mosaic'"></app-small-knob>
+    <app-small-knob (valueChange)="updateShapeEffect('oscillation', $event)" [label]="'blend'"></app-small-knob>
   </div>
   <app-rythm-bar></app-rythm-bar>
-  <app-master-knob [label]="'master'"></app-master-knob>
+  <app-master-knob [label]="'master'" (valueChange)="updateMaster($event)"></app-master-knob>
 </div>
 
 <div class="sidebar-header-sub"> Spectrum & Amplitude </div>
 
 <div class="eq-container">
-  <app-slider [label]="'60 hz'"></app-slider>
-  <app-slider [label]="'170 hz'"></app-slider>
-  <app-slider [label]="'400 hz'"></app-slider>
-  <app-slider [label]="'1 khz'"></app-slider>
-  <app-slider [label]="'2.5 khz'"></app-slider>
-  <app-slider [label]="'6 khz'"></app-slider>
-  <app-slider [label]="'15 khz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('hz60', $event)" [label]="'60 hz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('170 hz', $event)" [label]="'170 hz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('400 hz', $event)" [label]="'400 hz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('1 khz', $event)" [label]="'1 khz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('2.5 khz', $event)" [label]="'2.5 khz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('6 khz', $event)" [label]="'6 khz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('15 khz', $event)" [label]="'15 khz'"></app-slider>
   <div class="eq-lines">
     <div class="eq-line"></div>
     <div class="eq-line"></div>
@@ -130,5 +127,5 @@
     <div class="eq-line"></div>
     <div class="eq-line"></div>
   </div>
-  <app-slider [label]="'master'"></app-slider>
+  <app-slider (valueChange)="updateMasterSlider($event)" [label]="'master'"></app-slider>
 </div>

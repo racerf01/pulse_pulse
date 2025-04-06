@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, Renderer2 } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, Renderer2 } from '@angular/core';
 
 @Component({
   selector: 'app-small-knob',
@@ -8,6 +8,8 @@ import { Component, ElementRef, Input, Renderer2 } from '@angular/core';
 })
 export class SmallKnobComponent {
   @Input() label?: string;
+  @Output() valueChange: EventEmitter<number> = new EventEmitter<number>();
+
   angle = 0;
   
   private centerX!: number;
@@ -20,13 +22,11 @@ export class SmallKnobComponent {
   startRotation(event: MouseEvent) {
     event.preventDefault();
     
-    // Get the rotating container's position
     const rotatingEl = this.elRef.nativeElement.querySelector('.knob-rotating');
     const rect = rotatingEl.getBoundingClientRect();
     this.centerX = rect.left + rect.width / 2;
     this.centerY = rect.top + rect.height / 2;
     
-    // Listen for mousemove and mouseup on the window
     this.moveListener = this.renderer.listen('window', 'mousemove', (e) => this.rotate(e));
     this.upListener = this.renderer.listen('window', 'mouseup', () => this.stopRotation());
   }
@@ -36,8 +36,15 @@ export class SmallKnobComponent {
     const deltaY = event.clientY - this.centerY;
     let angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
     
-    // Adjust so 0° is at the top
+    // Adjust so 0° is at the top.
     this.angle = angle + 90;
+    
+    // Optional: Emit a normalized value (e.g. 0 to 1)
+    // let normalizedValue = ((this.angle % 360) + 360) % 360 / 360;
+    // this.valueChange.emit(normalizedValue);
+
+    // Here, we're simply emitting the raw angle.
+    this.valueChange.emit(this.angle);
   }
 
   stopRotation() {
