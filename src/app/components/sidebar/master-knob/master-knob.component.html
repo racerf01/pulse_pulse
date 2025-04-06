@@ -1,10 +1,17 @@
-<div class="master-knob">
-    <div class="knob large">
-      <div class="knob-indicator"></div>
-      <div class="corner top-left"></div>
-      <div class="corner top-right"></div>
-      <div class="corner bottom-left"></div>
-      <div class="corner bottom-right"></div>
+<div class="master-knob" (mousedown)="startRotation($event)">
+    <!-- Rotating container: contains the white knob and the orange indicator -->
+    <div class="knob-rotating" [style.transform]="'rotate(' + angle + 'deg)'">
+      <div class="knob large">
+        <div class="knob-indicator"></div>
+      </div>
     </div>
+    
+    <!-- Fixed corners: these are positioned relative to .master-knob -->
+    <div class="corner top-left"></div>
+    <div class="corner top-right"></div>
+    <div class="corner bottom-left"></div>
+    <div class="corner bottom-right"></div>
+  
     <div class="knob-label">{{ label }}</div>
-</div>
+  </div>
+  

@@ -1,6 +1,12 @@
 <div class="knob-control">
-    <div class="knob">
-      <div class="knob-indicator"></div>
+    <!-- This container holds the rotating knob -->
+    <div class="knob-container" (mousedown)="startRotation($event)">
+      <div class="knob-rotating" [style.transform]="'rotate(' + angle + 'deg)'">
+        <div class="knob">
+          <div class="knob-indicator"></div>
+        </div>
+      </div>
+      <!-- Fixed corner elements -->
       <div class="corner top-left"></div>
       <div class="corner top-right"></div>
       <div class="corner bottom-left"></div>
@@ -8,3 +14,4 @@
     </div>
     <div class="knob-label">{{ label }}</div>
 </div>
+  

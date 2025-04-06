@@ -3,20 +3,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-/* The vertical track for each slider */
-.slider-track {
+  }
+  
+  /* The vertical track for each slider */
+  .slider-track {
     position: relative;
-    width: 30px;       /* track width */
-    height: 220px;     /* track height */
+    width: 30px;    /* track width */
+    height: 220px;  /* track height */
     background-color: #F0F0F0;
     border-radius: 20px;
     overflow: visible;
-}
-
-/* Grey path inside the track, centered both vertically and horizontally */
-.slider-path {
+  }
+  
+  /* Grey path inside the track, centered both vertically and horizontally */
+  .slider-path {
     position: absolute;
     left: 50%;
     top: 50%;
@@ -25,59 +25,58 @@
     background-color: #ccc;
     transform: translate(-50%, -50%);
     border-radius: 100px;
-}  
-
-/* Draggable knob: a thin, centered bar */
-.slider-knob {
+  }
+  
+  /* Draggable knob: a thin, centered bar */
+  .slider-knob {
     position: absolute;
-    width: 22px;           /* fixed width for a thin indicator */
-    height: 4px;           /* thickness of the orange bar */
+    width: 22px;         /* knob width */
+    height: 4px;         /* thickness of the orange bar */
     background-color: #ff4500;
-    top: 50%;              /* center vertically */
-    left: 50%;             /* center horizontally */
-    transform: translate(-50%, -50%);
-    cursor: row-resize;
-    border-radius: 2px;    /* slightly rounded ends */
-}
-
-/* Corner circles */
-.corner {
+    left: 50%;           /* center horizontally */
+    transform: translateX(-50%) translateY(-50%);
+    cursor: row-resize;  /* indicates horizontal drag, but vertical is also fine */
+    border-radius: 2px;
+    /* 'top' is set dynamically from TS, in percentage (knobPosition + '%') */
+  }
+  
+  /* Corner circles */
+  .corner {
     position: absolute;
     width: 4px;
     height: 4px;
     border-radius: 50%;
     background-color: #606060;
-}
-
-/* Position each corner element */
-.top-left {
+    pointer-events: none; /* So corners don't block knob dragging */
+  }
+  
+  /* Position each corner element */
+  .top-left {
     top: 0;
     left: 0;
     transform: translate(-50%, -50%);
-}
-
-.top-right {
+  }
+  .top-right {
     top: 0;
     right: 0;
     transform: translate(50%, -50%);
-}
-
-.bottom-left {
+  }
+  .bottom-left {
     bottom: 0;
     left: 0;
     transform: translate(-50%, 50%);
-}
-
-.bottom-right {
+  }
+  .bottom-right {
     bottom: 0;
     right: 0;
     transform: translate(50%, 50%);
-}
-
-/* Label under each slider */
-.slider-label {
+  }
+  
+  /* Label under each slider */
+  .slider-label {
     margin-top: 8px;
     font-size: 10px;
     color: #fff;
     text-align: center;
-}
+  }
+  

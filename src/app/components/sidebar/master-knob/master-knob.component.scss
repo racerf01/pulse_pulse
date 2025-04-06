@@ -1,81 +1,88 @@
-/* Each knob + label grouping */
-.knob-control {
+/* Container for knob + label */
+.master-knob {
+    position: relative; /* So the fixed corners can be positioned absolutely */
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-/* Circular knob */
-.knob {
+    width: 117px;  /* Should match your .knob.large width */
+    height: 117px;
+  }
+  
+  /* The rotating wrapper for the knob (circle + indicator) */
+  .knob-rotating {
+    width: 117px;
+    height: 117px;
+    /* The transform is applied here from your component */
+  }
+  
+  /* The knob itself */
+  .knob {
     position: relative;
     width: 80px;
     height: 80px;
-    background-color: #fff; /* white circle */
+    background-color: #fff;
     border-radius: 50%;
-    box-shadow: 0 0 2px rgba(0,0,0,0.4); /* subtle shadow (optional) */
-}
-
-/* Orange indicator at the top of the knob */
-.knob-indicator {
+    box-shadow: 0 0 2px rgba(0,0,0,0.4);
+    margin: auto; /* Center inside the rotating container */
+  }
+  
+  /* For a larger knob, override the size */
+  .knob.large {
+    width: 117px;
+    height: 117px;
+  }
+  
+  /* Orange indicator */
+  .knob-indicator {
     position: absolute;
     top: 3px;
     left: 50%;
     transform: translateX(-50%);
     width: 4px;
     height: 30px;
-    background-color: #ff4500; /* orange line */
+    background-color: #ff4500;
     border-radius: 10px;
-}
-
-.corner {
+  }
+  
+  /* Corners (fixed): these are now positioned absolutely in .master-knob */
+  .corner {
     position: absolute;
     width: 4px;
     height: 4px;
     border-radius: 50%;
     background-color: #606060;
-}
+    pointer-events: none; /* Ensure they don't block mouse events */
+  }
   
-  /* Position each corner circle using negative margins for precise alignment */
-.top-left {
+  /* Adjust the positions as needed */
+  .top-left {
     top: 0;
     left: 0;
-    margin-top: -1.5px;
-    margin-left: -1.5px;
-}
-  
-.top-right {
+    transform: translate(-50%, -50%);
+  }
+  .top-right {
     top: 0;
     right: 0;
-    margin-top: -1.5px;
-    margin-right: -1.5px;
-}
-  
-.bottom-left {
+    transform: translate(50%, -50%);
+  }
+  .bottom-left {
     bottom: 0;
     left: 0;
-    margin-bottom: -1.5px;
-    margin-left: -1.5px;
-}
-  
-.bottom-right {
+    transform: translate(-50%, 50%);
+  }
+  .bottom-right {
     bottom: 0;
     right: 0;
-    margin-bottom: -1.5px;
-    margin-right: -1.5px;
-}
+    transform: translate(50%, 50%);
+  }
   
-
-/* Label under the knob */
-.knob-label {
+  /* Label below the knob */
+  .knob-label {
     margin-top: 7px;
     font-size: 10px;
     color: #fff;
     text-transform: lowercase;
     letter-spacing: 0.5px;
     text-align: center;
-}
-
-.knob.large {
-    width: 117px;
-    height: 117px;
-}
+  }
+  
