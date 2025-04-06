@@ -1,0 +1,33 @@
+/* styles.css or component stylesheet */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+  
+.app-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Make the WebGL canvas fill the entire container */
+app-webgl {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Position the sidebar fixed on the right */
+app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 350px; /* Adjust as needed */
+    height: 100vh;
+    background: #f0f0f0; /* Optional: set a background color */
+    z-index: 10; /* Ensure it appears on top */
+    background-color: #000000dd;
+}
+  

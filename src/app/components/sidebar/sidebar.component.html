@@ -1,41 +1,102 @@
-<div class="sidebar">
-    <h2>Motion & Temporal Effects</h2>
-    
-    <!-- Oscillation Controls -->
-    <div class="control-group">
-      <label>Oscillation Frequency</label>
-      <input type="range" min="0.1" max="10" step="0.1" [(ngModel)]="oscillationFrequency" (change)="onChange()">
-    </div>
-    <div class="control-group">
-      <label>Oscillation Amplitude</label>
-      <input type="range" min="0.1" max="10" step="0.1" [(ngModel)]="oscillationAmplitude" (change)="onChange()">
-    </div>
-    
-    <!-- Feedback / Trailing Effects -->
-    <div class="control-group">
-      <label>
-        <input type="checkbox" [(ngModel)]="feedbackEnabled" (change)="onChange()"> Feedback / Trailing
-      </label>
-    </div>
-    
-    <!-- Blur Effects -->
-    <div class="control-group">
-      <label>Blur Type</label>
-      <select [(ngModel)]="blurType" (change)="onChange()">
-        <option value="gaussian">Gaussian</option>
-        <option value="radial">Radial</option>
-        <option value="directional">Directional</option>
-      </select>
-    </div>
-    <div class="control-group">
-      <label>Blur Intensity</label>
-      <input type="range" min="0" max="20" step="1" [(ngModel)]="blurIntensity" (change)="onChange()">
-    </div>
-    
-    <!-- Time Remapping -->
-    <div class="control-group">
-      <label>Time Remap Speed</label>
-      <input type="range" min="0.1" max="5" step="0.1" [(ngModel)]="timeRemapSpeed" (change)="onChange()">
-    </div>
+<div class="sidebar-header">
+  <!-- <img class="close-icon" src="close_sidebar.svg" alt="Project Logo" width="15px"/> -->
+  <img src="pulse-pulse-logo.svg" alt="Project Logo" class="logo" width="120px"/>
+  <span class="project-name">Untitled</span>
+</div>
+
+<div class="sidebar-header">
+  <div class="input-header">
+    <a>Input</a>
+    <div class="status"></div>
   </div>
   
+  <select class="dropdown-selector">
+    <option value="option1">Option 1</option>
+    <option value="option2">Option 2</option>
+    <option value="option3">Option 3</option>
+  </select>
+</div>
+
+
+<div class="sidebar-header-sub">Colors</div>
+
+<!-- Container for color swatches -->
+<div class="color-container">
+  <!-- Up to 5 color circles -->
+  <div class="color-swatch" style="background-color: #0D2E70;"></div>
+  <div class="color-swatch" style="background-color: #4A6373;"></div>
+  <div class="color-swatch" style="background-color: #5E97B8;"></div>
+  <div class="color-swatch" style="background-color: #8AB9D8;"></div>
+  <div class="color-swatch" style="background-color: #124E8F;"></div>
+
+  <!-- Plus button to add a new color -->
+  <div class="color-swatch add-color">+</div>
+</div>
+
+<div class="sidebar-header-sub">Color Effects</div>
+
+<div class="knob-container">
+  <!-- Knob 1 -->
+  <div class="knob-control">
+    <div class="knob">
+      <div class="knob-indicator"></div>
+      <div class="corner top-left"></div>
+      <div class="corner top-right"></div>
+      <div class="corner bottom-left"></div>
+      <div class="corner bottom-right"></div>
+    </div>
+    <div class="knob-label">hue shift</div>
+  </div>
+
+  <!-- Knob 2 -->
+  <div class="knob-control">
+    <div class="knob">
+      <div class="knob-indicator"></div>
+      <div class="corner top-left"></div>
+      <div class="corner top-right"></div>
+      <div class="corner bottom-left"></div>
+      <div class="corner bottom-right"></div>
+    </div>
+    <div class="knob-label">saturation</div>
+  </div>
+
+  <!-- Knob 3 -->
+  <div class="knob-control">
+    <div class="knob">
+      <div class="knob-indicator"></div>
+      <div class="corner top-left"></div>
+      <div class="corner top-right"></div>
+      <div class="corner bottom-left"></div>
+      <div class="corner bottom-right"></div>
+    </div>
+    <div class="knob-label">brightness</div>
+  </div>
+</div>
+
+<div class="sidebar-header-sub">
+  <div class="input-header">
+    <a> Color Filter </a>
+    <!-- <div class="status"></div> -->
+  </div>
+  
+  <select class="dropdown-selector">
+    <option value="option1">Option 1</option>
+    <option value="option2">Option 2</option>
+    <option value="option3">Option 3</option>
+  </select>
+</div>
+
+<div class="sidebar-header-sub"> Shape & Geometry Effects </div>
+
+
+<div class="sidebar-header-sub"> Noise Deformation </div>
+
+<div class="sidebar-header-sub"> Motion & Temporal Effects </div>
+
+<div class="sidebar-header-sub"> Fractal & Kaleidoscopic Effects </div>
+
+<div class="sidebar-header-sub"> Texture & Special Effects </div>
+
+<div class="sidebar-header-sub"> Spectrum & Amplitude </div>
+
+

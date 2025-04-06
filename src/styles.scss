@@ -1,1 +1,28 @@
-/* You can add global styles to this file, and also import other style files */
+/* 1. Define custom fonts */
+@font-face {
+    font-family: 'Aeonik';
+    src: url('/fonts/AeonikTRIAL-Light.woff2') format('woff2');
+    font-weight: 300;    // Light
+    font-style: normal;
+    font-display: swap;  // Improves rendering performance
+}
+
+@font-face {
+    font-family: 'Aeonik';
+    src: url('/fonts/AeonikTRIAL-Regular.woff2') format('woff2');
+    font-weight: 400;    // Regular
+    font-style: normal;
+    font-display: swap;
+}
+  
+/* 2. Global reset and font usage */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'Aeonik', sans-serif; // Use the custom font globally
+}
