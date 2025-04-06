@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-master-knob',
@@ -7,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrl: './master-knob.component.scss'
 })
 export class MasterKnobComponent {
-
+  @Input() label?: string;
 }
