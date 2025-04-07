@@ -54,51 +54,59 @@ interface WebGlConfig {
   styleUrls: ['./sidebar.component.scss'],
   standalone: false
 })
-
 export class SidebarComponent {
   @Output() settingsChange = new EventEmitter<WebGlConfig>();
 
-  // Default configuration values
   projectName: string = 'Untitled';
   inputOption: string = 'option1';
   
-  // Colors defined as a hex string
+  // Declare all properties used in the configuration.
   colors = { hex: '#ffffff' };
 
   colorEffects = { hueShift: 0, saturation: 1, brightness: 1 };
+  // Added the missing property for color filter
   colorFilter: string = 'option1';
-  shapeGeometryEffects = {
-    scale: 1,
-    rotation: 0,
-    translation: 0,
-    distortion: 0,
-    morphing: 0,
-    ripple: 0,
-    master: 1
-  };
+
+  shapeGeometryEffects = { scale: 1, rotation: 0, translation: 0, distortion: 0, morphing: 0, ripple: 0, master: 1 };
   noiseDeformation: string = 'option1';
   motionTemporalEffects = { oscillation: 1, pulsation: 1, speed: 1 };
   fractalKaleidoscopicEffects: string = 'option1';
-  textureSpecialEffects = {
-    noise: 0,
-    glitch: 0,
-    texturing: 0,
-    pixelation: 0,
-    mosaic: 0,
-    blend: 0,
-    master: 1
-  };
-  spectrumAmplitude = {
-    hz60: 0,
-    hz170: 0,
-    hz400: 0,
-    hz1khz: 0,
-    hz2_5khz: 0,
-    hz6khz: 0,
-    hz15khz: 0,
-    master: 1
+  textureSpecialEffects = { noise: 0, glitch: 0, texturing: 0, pixelation: 0, mosaic: 0, blend: 0, master: 1 };
+  spectrumAmplitude = { hz60: 0, hz170: 0, hz400: 0, hz1khz: 0, hz2_5khz: 0, hz6khz: 0, hz15khz: 0, master: 1 };
+
+  // Knob range configuration for each control.
+  knobRanges = {
+    hueShift: { min: 0, max: 360 },
+    saturation: { min: 0, max: 2 },
+    brightness: { min: 0, max: 2 },
+    scale: { min: 0.5, max: 5 },
+    rotation: { min: 0, max: 360 },
+    translation: { min: -100, max: 100 },
+    distortion: { min: 0, max: 100 },
+    morphing: { min: 0, max: 100 },
+    ripple: { min: 0, max: 100 },
+    master: { min: 0, max: 1 },
+    oscillation: { min: 0, max: 10 },
+    pulsation: { min: 0, max: 10 },
+    speed: { min: 0, max: 10 },
+    noise: { min: 0, max: 100 },
+    glitch: { min: 0, max: 100 },
+    texturing: { min: 0, max: 100 },
+    pixelation: { min: 0, max: 100 },
+    mosaic: { min: 0, max: 100 },
+    blend: { min: 0, max: 100 },
+    masterTexture: { min: 0, max: 1 },
+    hz60: { min: 0, max: 1 },
+    hz170: { min: 0, max: 1 },
+    hz400: { min: 0, max: 1 },
+    hz1khz: { min: 0, max: 1 },
+    hz2_5khz: { min: 0, max: 1 },
+    hz6khz: { min: 0, max: 1 },
+    hz15khz: { min: 0, max: 1 },
+    masterAmp: { min: 0, max: 1 }
   };
 
+  // Called by all update methods to send the updated configuration.
   onChange() {
     const settings: WebGlConfig = {
       projectName: this.projectName,
@@ -112,50 +120,47 @@ export class SidebarComponent {
       textureSpecialEffects: this.textureSpecialEffects,
       spectrumAmplitude: this.spectrumAmplitude
     };
-
     console.log('Sidebar emitting settings:', settings);
     this.settingsChange.emit(settings);
   }
 
+  // Update methods for separate groups
+
+  updateColorEffect(effectName: string, value: number) {
+    this.colorEffects = { ...this.colorEffects, [effectName]: value };
+    this.onChange();
+  }
+
   updateShapeEffect(effectName: string, value: number) {
-    this.shapeGeometryEffects = {
-      ...this.shapeGeometryEffects,
-      [effectName]: value
-    };
+    this.shapeGeometryEffects = { ...this.shapeGeometryEffects, [effectName]: value };
     this.onChange();
   }
 
-  // Example update method for spectrum amplitude
+  updateMotionTemporalEffect(effectName: string, value: number) {
+    this.motionTemporalEffects = { ...this.motionTemporalEffects, [effectName]: value };
+    this.onChange();
+  }
+
+  updateTextureEffect(effectName: string, value: number) {
+    this.textureSpecialEffects = { ...this.textureSpecialEffects, [effectName]: value };
+    this.onChange();
+  }
+
   updateSpectrum(freqLabel: string, value: number) {
-    this.spectrumAmplitude = {
-      ...this.spectrumAmplitude,
-      [freqLabel]: value
-    };
-    this.onChange();
-  }
-
-  updateMaster(value: number) {
-    this.textureSpecialEffects = {
-      ...this.textureSpecialEffects,
-      master: value
-    };
-    // Call onChange() to emit the updated configuration
+    this.spectrumAmplitude = { ...this.spectrumAmplitude, [freqLabel]: value };
     this.onChange();
   }
 
   updateMasterSlider(value: number) {
-    this.spectrumAmplitude = {
-      ...this.spectrumAmplitude,
-      master: value  // or you might normalize the value as needed
-    };
+    // For spectrum amplitude master slider.
+    this.spectrumAmplitude = { ...this.spectrumAmplitude, master: value };
     this.onChange();
   }
-  
+
+  // General dropdown update (for properties that are strings)
   updateDropdown(field: string, event: Event) {
     const target = event.target as HTMLSelectElement;
     const value = target.value;
-
-    // Update the correct property based on the field name
     if (field === 'inputOption') {
       this.inputOption = value;
     } else if (field === 'colorFilter') {
@@ -165,8 +170,6 @@ export class SidebarComponent {
     } else if (field === 'fractalKaleidoscopicEffects') {
       this.fractalKaleidoscopicEffects = value;
     }
-    // Optionally log or perform other tasks here
-
     this.onChange();
   }
 }

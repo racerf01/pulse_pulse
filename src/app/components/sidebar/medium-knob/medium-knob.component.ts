@@ -4,13 +4,17 @@ import { Component, ElementRef, EventEmitter, Input, Output, Renderer2 } from '@
   selector: 'app-medium-knob',
   standalone: false,
   templateUrl: './medium-knob.component.html',
-  styleUrl: './medium-knob.component.scss'
+  styleUrls: ['./medium-knob.component.scss']
 })
 export class MediumKnobComponent {
   @Input() label?: string;
+  @Input() min: number = 0;    // Example: 0
+  @Input() max: number = 360;  // Example: 360
   @Output() valueChange: EventEmitter<number> = new EventEmitter<number>();
 
+  // Store the angle if you want to show a visual indicator.
   angle = 0;
+  
   private centerX!: number;
   private centerY!: number;
   private moveListener!: () => void;
@@ -24,19 +28,29 @@ export class MediumKnobComponent {
     const rect = rotatingEl.getBoundingClientRect();
     this.centerX = rect.left + rect.width / 2;
     this.centerY = rect.top + rect.height / 2;
-    
     this.moveListener = this.renderer.listen('window', 'mousemove', (e) => this.rotate(e));
     this.upListener = this.renderer.listen('window', 'mouseup', () => this.stopRotation());
+  }
+
+  // Maps a raw rotation angle (0-360°) into the given [min, max] range.
+  mapAngleToValue(rawAngle: number): number {
+    return this.min + (rawAngle / 360) * (this.max - this.min);
   }
 
   rotate(event: MouseEvent) {
     const deltaX = event.clientX - this.centerX;
     const deltaY = event.clientY - this.centerY;
-    let angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+    // Calculate angle in degrees
+    let rawAngle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) + 90;
+    if (rawAngle < 0) {
+      rawAngle += 360;
+    }
+    // Update the component’s angle for visual feedback if needed.
+    this.angle = rawAngle;
     
-    // Adjust so that 0° is at the top.
-    this.angle = angle + 90;
-    this.valueChange.emit(this.angle);
+    // Map the normalized angle to the provided min/max range.
+    const mappedValue = this.mapAngleToValue(rawAngle);
+    this.valueChange.emit(mappedValue);
   }
 
   stopRotation() {

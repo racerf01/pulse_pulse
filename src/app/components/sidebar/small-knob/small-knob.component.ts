@@ -2,12 +2,14 @@ import { Component, ElementRef, EventEmitter, Input, Output, Renderer2 } from '@
 
 @Component({
   selector: 'app-small-knob',
-  standalone: false,
   templateUrl: './small-knob.component.html',
-  styleUrl: './small-knob.component.scss'
+  styleUrls: ['./small-knob.component.scss'],
+  standalone: false
 })
 export class SmallKnobComponent {
   @Input() label?: string;
+  @Input() min: number = 0;    // Example: 0
+  @Input() max: number = 360;  // Example: 360
   @Output() valueChange: EventEmitter<number> = new EventEmitter<number>();
 
   angle = 0;
@@ -21,30 +23,28 @@ export class SmallKnobComponent {
 
   startRotation(event: MouseEvent) {
     event.preventDefault();
-    
     const rotatingEl = this.elRef.nativeElement.querySelector('.knob-rotating');
     const rect = rotatingEl.getBoundingClientRect();
     this.centerX = rect.left + rect.width / 2;
     this.centerY = rect.top + rect.height / 2;
-    
     this.moveListener = this.renderer.listen('window', 'mousemove', (e) => this.rotate(e));
     this.upListener = this.renderer.listen('window', 'mouseup', () => this.stopRotation());
+  }
+
+  mapAngleToValue(rawAngle: number): number {
+    return this.min + (rawAngle / 360) * (this.max - this.min);
   }
 
   rotate(event: MouseEvent) {
     const deltaX = event.clientX - this.centerX;
     const deltaY = event.clientY - this.centerY;
-    let angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
-    
-    // Adjust so 0° is at the top.
-    this.angle = angle + 90;
-    
-    // Optional: Emit a normalized value (e.g. 0 to 1)
-    // let normalizedValue = ((this.angle % 360) + 360) % 360 / 360;
-    // this.valueChange.emit(normalizedValue);
-
-    // Here, we're simply emitting the raw angle.
-    this.valueChange.emit(this.angle);
+    let rawAngle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) + 90;
+    if (rawAngle < 0) {
+      rawAngle += 360;
+    }
+    this.angle = rawAngle;
+    const mappedValue = this.mapAngleToValue(rawAngle);
+    this.valueChange.emit(mappedValue);
   }
 
   stopRotation() {
