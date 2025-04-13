@@ -51,9 +51,21 @@
 
 .project-name {
     font-size: 18px;
-    font-weight: bold;
+    max-width: 100px;           // Adjust max-width as needed
+    overflow: hidden;           // Ensure the text is contained within the box
+    text-overflow: ellipsis;    // Show an ellipsis when text overflows
+    white-space: nowrap;        // Prevent wrapping to a new line
+    text-align: end;
+    background: transparent;    // Keep background clear
+    border: none;               // Remove default border styling
+    color: #fff;                // Set text color (white, if that’s your design)
     font-weight: 300;
-}
+    
+    /* Optional: remove outline on focus */
+    &:focus {
+      outline: none;
+    }
+}  
 
 .status {
     border-radius: 100px;
@@ -171,7 +183,7 @@
     cursor: pointer;
     width: 24px;  // adjust size as needed
     height: 24px;
-    margin-left: 8px;  // space between logo and icon
+    margin-right: 70px;  // space between logo and icon
     }
 
 .options-dropdown {

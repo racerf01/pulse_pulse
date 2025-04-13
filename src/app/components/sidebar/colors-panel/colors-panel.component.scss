@@ -1,25 +1,55 @@
+/* Container row for color swatches; horizontally scrollable */
 .color-container {
     display: flex;
     align-items: center;
     gap: 8px; /* space between swatches */
     padding: 10px;
-}
+    overflow-x: auto; /* enables horizontal scrolling */
+    white-space: nowrap;
+  }
   
-  /* Base circle style */
-.color-swatch {
+  /* Base style for each color swatch */
+  .color-swatch {
     width: 25px;
     height: 25px;
     border-radius: 50%;
     cursor: pointer;
-}
+    position: relative; /* position context for the delete icon */
+  }
   
-.add-color {
+  /* Plus button styling (for adding a new color) */
+  .add-color {
     background-color: transparent;
     border: 2px solid #fff; /* white border */
-    color: #fff;           /* white plus sign */
+    color: #fff;            /* white plus sign */
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
-    font-weight: normal;
-}
+  }
+  
+  /* Delete icon, hidden by default and displayed on hover */
+  .delete-icon {
+    display: none;
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #f00;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 10px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+  }
+  
+  .color-swatch:hover .delete-icon {
+    display: block;
+  }
+  
+  /* Style for the inline color picker container */
+  .inline-color-picker {
+    margin: 10px;
+  }
+  

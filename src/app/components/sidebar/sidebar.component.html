@@ -1,9 +1,9 @@
 <div class="sidebar-header">
   <img src="pulse-pulse-logo.svg" alt="Project Logo" class="logo" width="120px" />
-  
-  <!-- Options icon container with reference -->
+
+  <!-- Options icon container -->
   <div class="options-container" #optionsContainer>
-    <img src="options.svg" alt="Options" class="options-icon" (click)="toggleOptions()" style="margin-right: 110px;">
+    <img src="options.svg" alt="Options" class="options-icon" (click)="toggleOptions()">
     <!-- Dropdown shown when optionsOpen is true -->
     <div class="options-dropdown" *ngIf="optionsOpen">
       <ul>
@@ -12,9 +12,16 @@
       </ul>
     </div>
   </div>
-  
-  <span class="project-name">{{ projectName }}</span>
+
+  <!-- Editable project name input -->
+  <input
+    type="text"
+    [(ngModel)]="projectName"
+    class="project-name"
+    placeholder="Untitled"
+  />
 </div>
+
 
 <!-- Input Options -->
 <div class="sidebar-header">
@@ -38,6 +45,7 @@
     <option value="option1">Blue Waves</option>
     <option value="option2">Dark Holes</option>
     <option value="option3">Pulsatic Grid</option>
+    <option value="option4">Custom</option>
   </select>
 </div>
 

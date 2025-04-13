@@ -1,11 +1,22 @@
+<!-- Horizontally scrollable color swatches row -->
 <div class="color-container">
-    <!-- Up to 5 color circles -->
-    <div class="color-swatch" style="background-color: #0D2E70;"></div>
-    <div class="color-swatch" style="background-color: #4A6373;"></div>
-    <div class="color-swatch" style="background-color: #5E97B8;"></div>
-    <div class="color-swatch" style="background-color: #8AB9D8;"></div>
-    <div class="color-swatch" style="background-color: #124E8F;"></div>
+    <!-- Loop through each color in the colors array -->
+    <div 
+      *ngFor="let color of colors" 
+      class="color-swatch" 
+      [ngStyle]="{'background-color': color}"
+      (click)="deleteColor(color)"
+    >
+      <!-- Delete icon shown on hover -->
+      <div class="delete-icon">×</div>
+    </div>
+    
+    <!-- Plus button to show the color picker -->
+    <div class="color-swatch add-color" (click)="toggleColorPicker()">+</div>
+  </div>
   
-    <!-- Plus button to add a new color -->
-    <div class="color-swatch add-color">+</div>
-</div>
+  <!-- Inline color picker, shown only when toggled -->
+  <div *ngIf="showColorPicker" class="inline-color-picker">
+    <input type="color" (change)="onColorPickerChange($event)" />
+  </div>
+  
