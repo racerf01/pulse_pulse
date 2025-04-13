@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, ElementRef, HostListener, Output, EventEmitter, ViewChild } from '@angular/core';
 
 interface WebGlConfig {
   projectName: string;
@@ -57,6 +57,10 @@ interface WebGlConfig {
 export class SidebarComponent {
   @Output() settingsChange = new EventEmitter<WebGlConfig>();
 
+  // Template references
+  @ViewChild('optionsContainer', { static: true })
+  optionsContainer!: ElementRef;
+
   // Use separate properties:
   inputOption: string = 'option1';      // Default for Input dropdown
   templateOption: string = 'option1';     // Default for Template dropdown
@@ -72,7 +76,6 @@ export class SidebarComponent {
   textureSpecialEffects = { noise: 0, glitch: 0, texturing: 0, pixelation: 0, mosaic: 0, blend: 0, master: 1 };
   spectrumAmplitude = { hz60: 0, hz170: 0, hz400: 0, hz1khz: 0, hz2_5khz: 0, hz6khz: 0, hz15khz: 0, master: 1 };
 
-  // Knob range configuration remains unchanged
   knobRanges = {
     hueShift: { min: 0, max: 360 },
     saturation: { min: 0, max: 2 },
@@ -104,23 +107,29 @@ export class SidebarComponent {
     masterAmp: { min: 0, max: 1 }
   };
 
-  // Toggle the options dropdown visibility
+  // Dropdown open state
   optionsOpen: boolean = false;
   toggleOptions(): void {
     this.optionsOpen = !this.optionsOpen;
   }
 
-  // Dummy functions for Import and Export project
+  // Dummy actions for Import and Export
   importProject(): void {
     console.log('Import Project clicked');
-    // Close the dropdown after click
     this.optionsOpen = false;
   }
 
   exportProject(): void {
     console.log('Export Project clicked');
-    // Close the dropdown after click
     this.optionsOpen = false;
+  }
+
+  // HostListener to close the dropdown on click outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (this.optionsOpen && !this.optionsContainer.nativeElement.contains(event.target)) {
+      this.optionsOpen = false;
+    }
   }
 
   onChange() {
@@ -140,7 +149,6 @@ export class SidebarComponent {
     this.settingsChange.emit(settings);
   }
 
-  // Update dropdown method: differentiate between input and template options.
   updateDropdown(field: string, event: Event) {
     const target = event.target as HTMLSelectElement;
     const value = target.value;

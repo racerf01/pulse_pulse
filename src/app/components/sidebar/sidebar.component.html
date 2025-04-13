@@ -1,7 +1,8 @@
 <div class="sidebar-header">
   <img src="pulse-pulse-logo.svg" alt="Project Logo" class="logo" width="120px" />
-  <!-- Options icon container -->
-  <div class="options-container">
+  
+  <!-- Options icon container with reference -->
+  <div class="options-container" #optionsContainer>
     <img src="options.svg" alt="Options" class="options-icon" (click)="toggleOptions()" style="margin-right: 110px;">
     <!-- Dropdown shown when optionsOpen is true -->
     <div class="options-dropdown" *ngIf="optionsOpen">
@@ -11,9 +12,9 @@
       </ul>
     </div>
   </div>
+  
   <span class="project-name">{{ projectName }}</span>
 </div>
-
 
 <!-- Input Options -->
 <div class="sidebar-header">
@@ -40,8 +41,8 @@
   </select>
 </div>
 
-<div class="sidebar-header-sub"  *ngIf="inputOption === 'option2'">Player</div>
-<app-player  *ngIf="inputOption === 'option2'"></app-player>
+<div class="sidebar-header-sub" *ngIf="inputOption === 'option2'">Player</div>
+<app-player *ngIf="inputOption === 'option2'"></app-player>
 
 <!-- Colors -->
 <div class="sidebar-header-sub">Colors</div>
@@ -231,41 +232,13 @@
 <!-- Spectrum & Amplitude -->
 <div class="sidebar-header-sub">Spectrum & Amplitude</div>
 <div class="eq-container">
-  <app-slider
-    (valueChange)="updateSpectrum('hz60', $event)"
-    [label]="'60 hz'"
-    >
-  </app-slider>
-  <app-slider
-    (valueChange)="updateSpectrum('hz170', $event)"
-    [label]="'170 hz'"
-    >
-  </app-slider>
-  <app-slider
-    (valueChange)="updateSpectrum('hz400', $event)"
-    [label]="'400 hz'"
-    >
-  </app-slider>
-  <app-slider
-    (valueChange)="updateSpectrum('hz1khz', $event)"
-    [label]="'1 khz'"
-    >
-  </app-slider>
-  <app-slider
-    (valueChange)="updateSpectrum('hz2_5khz', $event)"
-    [label]="'2.5 khz'"
-    >
-  </app-slider>
-  <app-slider
-    (valueChange)="updateSpectrum('hz6khz', $event)"
-    [label]="'6 khz'"
-    >
-  </app-slider>
-  <app-slider
-    (valueChange)="updateSpectrum('hz15khz', $event)"
-    [label]="'15 khz'"
-    >
-  </app-slider>
+  <app-slider (valueChange)="updateSpectrum('hz60', $event)" [label]="'60 hz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('hz170', $event)" [label]="'170 hz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('hz400', $event)" [label]="'400 hz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('hz1khz', $event)" [label]="'1 khz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('hz2_5khz', $event)" [label]="'2.5 khz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('hz6khz', $event)" [label]="'6 khz'"></app-slider>
+  <app-slider (valueChange)="updateSpectrum('hz15khz', $event)" [label]="'15 khz'"></app-slider>
   <div class="eq-lines">
     <div class="eq-line"></div>
     <div class="eq-line"></div>
@@ -287,9 +260,5 @@
     <div class="eq-line"></div>
     <div class="eq-line"></div>
   </div>
-  <app-slider
-    (valueChange)="updateMasterSlider($event)"
-    [label]="'master'"
-    >
-  </app-slider>
+  <app-slider (valueChange)="updateMasterSlider($event)" [label]="'master'"></app-slider>
 </div>
