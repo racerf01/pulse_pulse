@@ -96,6 +96,7 @@
     color: white;
     border: none;
     border-radius: 0;
+    text-align: end;
 }
 
 .input-header {
@@ -117,6 +118,10 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px;
+
+    app-master-knob {
+        margin-bottom: 18px;
+    }
 }
   
   /* Left column: Grid of 6 knobs (2 rows x 3 columns) */
@@ -155,5 +160,46 @@
 
 .eq-line.light {
     background-color: #fff;  /* Change line color as needed */
+}
+
+.options-container {
+    position: relative;
+    display: inline-block;
+}
+
+.options-icon {
+    cursor: pointer;
+    width: 24px;  // adjust size as needed
+    height: 24px;
+    margin-left: 8px;  // space between logo and icon
+    }
+
+.options-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #222;
+    border: 1px solid #333;
+    border-radius: 4px;
+    margin-top: 5px;
+    z-index: 10;
+    min-width: 150px;
+}
+
+.options-dropdown ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.options-dropdown li {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: #fff;
+    transition: background 0.3s;
+}
+
+.options-dropdown li:hover {
+    background: #444;
 }
 

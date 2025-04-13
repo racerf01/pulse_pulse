@@ -1,4 +1,7 @@
 <div class="app-container">
+  <!-- Button to generate a new random animation -->
+  <button (click)="generateRandomShaderSource()">Generate Random Animation</button>
+
   <!-- WebGL component receives the current settings -->
   <app-webgl [settings]="currentSettings"></app-webgl>
 

@@ -1,7 +1,19 @@
 <div class="sidebar-header">
   <img src="pulse-pulse-logo.svg" alt="Project Logo" class="logo" width="120px" />
+  <!-- Options icon container -->
+  <div class="options-container">
+    <img src="options.svg" alt="Options" class="options-icon" (click)="toggleOptions()" style="margin-right: 110px;">
+    <!-- Dropdown shown when optionsOpen is true -->
+    <div class="options-dropdown" *ngIf="optionsOpen">
+      <ul>
+        <li (click)="importProject()">Import Project</li>
+        <li (click)="exportProject()">Export Project</li>
+      </ul>
+    </div>
+  </div>
   <span class="project-name">{{ projectName }}</span>
 </div>
+
 
 <!-- Input Options -->
 <div class="sidebar-header">
@@ -10,11 +22,26 @@
     <div class="status"></div>
   </div>
   <select class="dropdown-selector" (change)="updateDropdown('inputOption', $event)">
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
-    <option value="option3">Option 3</option>
+    <option value="option1">Defualt Microphone</option>
+    <option value="option2">Music Import</option>
+    <option value="option3">Device Sounds</option>
   </select>
 </div>
+
+<div class="sidebar-header">
+  <div class="input-header">
+    <a>Template</a>
+    <!-- <div class="status"></div> -->
+  </div>
+  <select class="dropdown-selector" (change)="updateDropdown('templateOption', $event)">
+    <option value="option1">Blue Waves</option>
+    <option value="option2">Dark Holes</option>
+    <option value="option3">Pulsatic Grid</option>
+  </select>
+</div>
+
+<div class="sidebar-header-sub"  *ngIf="inputOption === 'option2'">Player</div>
+<app-player  *ngIf="inputOption === 'option2'"></app-player>
 
 <!-- Colors -->
 <div class="sidebar-header-sub">Colors</div>

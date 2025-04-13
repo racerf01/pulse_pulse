@@ -1,0 +1,50 @@
+<div class="player">
+    <!-- Hidden audio element -->
+    <audio
+      #audioRef
+      (timeupdate)="onTimeUpdate($event)"
+      (ended)="onEnded()"
+      (loadedmetadata)="onLoadedMetadata($event)"
+    >
+      <source [src]="audioSrc" type="audio/mpeg" />
+      Your browser does not support the audio element.
+    </audio>
+  
+    <!-- Control buttons -->
+    <div class="controls">
+      <!-- Import Music Button -->
+      <button aria-label="Import music" (click)="triggerFileInput()">
+        <img src="/import.svg" alt="Import Music">
+      </button>
+      <!-- Hidden file input for importing music -->
+      <input
+        type="file"
+        accept="audio/*"
+        #fileInput
+        style="display:none"
+        (change)="onFileSelected($event)"
+      />
+  
+      <!-- Skip backward -->
+      <button aria-label="Rewind 10 seconds" (click)="seekBackward()">
+        <img src="/back.svg" alt="Back">
+      </button>
+  
+      <!-- Play / Pause -->
+      <button aria-label="Toggle playback" (click)="togglePlay()">
+        <img *ngIf="!isPlaying" src="/play.svg" alt="Play" style="margin-left: 1.1px;">
+        <img *ngIf="isPlaying" src="/pause.svg" alt="Pause" style="margin-left: 1.1px;">
+      </button>
+  
+      <!-- Skip forward -->
+      <button aria-label="Forward 10 seconds" (click)="seekForward()">
+        <img src="/forward.svg" alt="Forward">
+      </button>
+    </div>
+  
+    <!-- Progress bar (a clickable container that fills as music plays) -->
+    <div class="progress-bar" (click)="onSeekClick($event)">
+      <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+    </div>
+  </div>
+  

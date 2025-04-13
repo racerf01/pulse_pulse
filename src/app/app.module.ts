@@ -12,6 +12,7 @@ import { SmallKnobComponent } from './components/sidebar/small-knob/small-knob.c
 import { RythmBarComponent } from './components/sidebar/rythm-bar/rythm-bar.component';
 import { MasterKnobComponent } from './components/sidebar/master-knob/master-knob.component';
 import { SliderComponent } from './components/sidebar/slider/slider.component';
+import { PlayerComponent } from './components/sidebar/player/player.component';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { SliderComponent } from './components/sidebar/slider/slider.component';
     RythmBarComponent,
     MasterKnobComponent,
     SliderComponent,
+    PlayerComponent,
   ],
   imports: [
     BrowserModule,

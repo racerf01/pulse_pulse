@@ -4,14 +4,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 117px;  /* Should match your .knob.large width */
-    height: 117px;
+    width: 115px;  /* Should match your .knob.large width */
+    height: 115px;
   }
   
   /* The rotating wrapper for the knob (circle + indicator) */
   .knob-rotating {
-    width: 117px;
-    height: 117px;
+    width: 115px;
+    height: 115px;
     /* The transform is applied here from your component */
   }
   

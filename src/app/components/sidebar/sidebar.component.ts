@@ -57,16 +57,14 @@ interface WebGlConfig {
 export class SidebarComponent {
   @Output() settingsChange = new EventEmitter<WebGlConfig>();
 
+  // Use separate properties:
+  inputOption: string = 'option1';      // Default for Input dropdown
+  templateOption: string = 'option1';     // Default for Template dropdown
+
   projectName: string = 'Untitled';
-  inputOption: string = 'option1';
-  
-  // Declare all properties used in the configuration.
   colors = { hex: '#ffffff' };
-
   colorEffects = { hueShift: 0, saturation: 1, brightness: 1 };
-  // Added the missing property for color filter
   colorFilter: string = 'option1';
-
   shapeGeometryEffects = { scale: 1, rotation: 0, translation: 0, distortion: 0, morphing: 0, ripple: 0, master: 1 };
   noiseDeformation: string = 'option1';
   motionTemporalEffects = { oscillation: 1, pulsation: 1, speed: 1 };
@@ -74,7 +72,7 @@ export class SidebarComponent {
   textureSpecialEffects = { noise: 0, glitch: 0, texturing: 0, pixelation: 0, mosaic: 0, blend: 0, master: 1 };
   spectrumAmplitude = { hz60: 0, hz170: 0, hz400: 0, hz1khz: 0, hz2_5khz: 0, hz6khz: 0, hz15khz: 0, master: 1 };
 
-  // Knob range configuration for each control.
+  // Knob range configuration remains unchanged
   knobRanges = {
     hueShift: { min: 0, max: 360 },
     saturation: { min: 0, max: 2 },
@@ -106,7 +104,25 @@ export class SidebarComponent {
     masterAmp: { min: 0, max: 1 }
   };
 
-  // Called by all update methods to send the updated configuration.
+  // Toggle the options dropdown visibility
+  optionsOpen: boolean = false;
+  toggleOptions(): void {
+    this.optionsOpen = !this.optionsOpen;
+  }
+
+  // Dummy functions for Import and Export project
+  importProject(): void {
+    console.log('Import Project clicked');
+    // Close the dropdown after click
+    this.optionsOpen = false;
+  }
+
+  exportProject(): void {
+    console.log('Export Project clicked');
+    // Close the dropdown after click
+    this.optionsOpen = false;
+  }
+
   onChange() {
     const settings: WebGlConfig = {
       projectName: this.projectName,
@@ -124,8 +140,25 @@ export class SidebarComponent {
     this.settingsChange.emit(settings);
   }
 
-  // Update methods for separate groups
+  // Update dropdown method: differentiate between input and template options.
+  updateDropdown(field: string, event: Event) {
+    const target = event.target as HTMLSelectElement;
+    const value = target.value;
+    if (field === 'inputOption') {
+      this.inputOption = value;
+    } else if (field === 'templateOption') {
+      this.templateOption = value;
+    } else if (field === 'colorFilter') {
+      this.colorFilter = value;
+    } else if (field === 'noiseDeformation') {
+      this.noiseDeformation = value;
+    } else if (field === 'fractalKaleidoscopicEffects') {
+      this.fractalKaleidoscopicEffects = value;
+    }
+    this.onChange();
+  }
 
+  // Other update methods remain unchanged...
   updateColorEffect(effectName: string, value: number) {
     this.colorEffects = { ...this.colorEffects, [effectName]: value };
     this.onChange();
@@ -152,24 +185,7 @@ export class SidebarComponent {
   }
 
   updateMasterSlider(value: number) {
-    // For spectrum amplitude master slider.
     this.spectrumAmplitude = { ...this.spectrumAmplitude, master: value };
-    this.onChange();
-  }
-
-  // General dropdown update (for properties that are strings)
-  updateDropdown(field: string, event: Event) {
-    const target = event.target as HTMLSelectElement;
-    const value = target.value;
-    if (field === 'inputOption') {
-      this.inputOption = value;
-    } else if (field === 'colorFilter') {
-      this.colorFilter = value;
-    } else if (field === 'noiseDeformation') {
-      this.noiseDeformation = value;
-    } else if (field === 'fractalKaleidoscopicEffects') {
-      this.fractalKaleidoscopicEffects = value;
-    }
     this.onChange();
   }
 }
