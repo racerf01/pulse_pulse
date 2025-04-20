@@ -146,108 +146,119 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
       uniform float u_hz15khz;
       uniform float u_masterAmp;
 
-      // noise helper
       float noise(vec2 p) {
         return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453);
       }
 
+      vec2 rot2d(vec2 p, float a) {
+        float s = sin(a), c = cos(a);
+        p -= 0.5;
+        p = mat2(c, -s, s, c) * p;
+        return p + 0.5;
+      }
+
       void main() {
-        // 1) apply shape & geometry
         vec2 uv = v_uv;
-        uv = (uv - 0.5) * u_shapeScale + 0.5;
-        float s = sin(u_shapeRotation);
-        float c = cos(u_shapeRotation);
-        uv = ((uv - 0.5) * mat2(c,-s,s,c)) + 0.5;
-        uv += u_shapeTranslation * 0.002;
+        
+        // apply EQ-driven scale
+        float scaleMod = 1.0 + u_hz60 * 0.2;
+        uv = (uv - 0.5) * (u_shapeScale * scaleMod) + 0.5;
+
+        // rotation + audio-driven rotation
+        uv = rot2d(uv, u_shapeRotation + u_pulsation * u_audio * 0.5);
+
+        // translation w/ bass reaction
+        uv += u_shapeTranslation * 0.001 + vec2(u_hz400, u_hz60) * 0.002;
+
+        // distortion & morphing modulated by audio
         if (u_noiseDeformation > 0.5) {
-          uv += (noise(uv * 5.0) - 0.5) * u_shapeDistortion * 0.01;
+          uv += (noise(uv * 5.0) - 0.5) * u_shapeDistortion * 0.01 * u_audio;
         }
         uv += (noise(uv * 10.0) - 0.5) * u_shapeMorphing * 0.01;
-        uv += sin((uv.x+uv.y)*10.0 + u_time*u_speed) * u_shapeRipple * 0.001;
+
+        // ripple speed modulated
+        uv += sin((uv.x + uv.y) * 10.0 + u_time * u_speed * (1.0 + u_masterAmp)) * u_shapeRipple * 0.001;
         uv = (uv - 0.5) * u_shapeMaster + 0.5;
 
-        // 2) fractal
+        // fractal toggle
         if (u_fractal > 0.5) {
           uv = abs(fract(uv * 2.0) - 0.5);
         }
 
-        // 3) oscillator + audio
-        float t = u_time * u_speed;
+        // oscillator + audio reaction
+        float t = u_time * (1.0 + u_speed * 0.5);
         float a = pow(u_audio, 2.0);
-        float osc1 = sin(uv.x * u_oscillation + t * u_pulsation + u_hueShift);
-        float osc2 = sin(uv.y * u_oscillation - t * u_pulsation + u_hueShift);
-        float diff = abs(osc1 - osc2);
-        vec3 col = vec3(diff * (1.0 + a));
-
-        // 4) textures
-        col += noise(uv * 20.0 + t * 0.1) * u_texNoise * 0.1;
-        col += (sin(uv.y * 50.0 + t * 30.0) * 0.5 + 0.5) * u_glitch * 0.05;
+        float osc = sin((uv.x + uv.y) * u_oscillation + t * u_pulsation + u_hueShift * 0.1);
+        vec3 col = vec3(osc * 0.5 + 0.5);
+        
+        // texture effects with audio
+        col += noise(uv * 20.0 + t * 0.1) * u_texNoise * u_audio * 0.1;
+        col += (sin(uv.y * 50.0 + t * 30.0) * 0.5 + 0.5) * u_glitch * a * 0.05;
         col = mix(col, floor(col * 10.0) / 10.0, u_texturing * 0.1);
         col += noise(uv * 5.0) * u_pixelation * 0.05;
         uv = floor(uv * (10.0 - u_mosaic)) / (10.0 - u_mosaic);
         col = mix(col, vec3(uv.x, uv.y, 1.0 - uv.x), u_blend * 0.1);
         col *= u_masterTexture;
 
-        // 5) color filter
-        float gray = dot(col, vec3(0.3,0.59,0.11));
+        // color adjustments + audio tint
+        float gray = dot(col, vec3(0.3, 0.59, 0.11));
         if (u_saturation < 0.5) col = vec3(gray);
-
-        // 6) color effects
         col = mix(vec3(gray), col, u_saturation);
-        col *= u_brightness;
+        col *= u_brightness * (1.0 + u_masterAmp * a);
 
-        // 7) EQ tints
-        col.r += u_hz60 * 0.2;
-        col.g += u_hz400 * 0.2;
-        col.b += u_hz15khz * 0.2;
-        col *= 1.0 + u_masterAmp;
+        // final tint by EQ master amp
+        col.r += u_hz15khz * 0.1;
+        col.b += u_hz60 * 0.1;
 
         gl_FragColor = vec4(col, 1.0);
       }
     `;
 
-    // compile & link
     const vsh = this.createShader(this.gl, this.gl.VERTEX_SHADER, vs);
     const fsh = this.createShader(this.gl, this.gl.FRAGMENT_SHADER, fs);
     this.program = this.createProgram(this.gl, vsh, fsh);
 
-    // get locations
     const g = this.gl;
-    this.a_position         = g.getAttribLocation(this.program, 'a_position');
-    this.u_time             = g.getUniformLocation(this.program, 'u_time')!;
-    this.u_audio            = g.getUniformLocation(this.program, 'u_audio')!;
-    this.u_hueShift         = g.getUniformLocation(this.program, 'u_hueShift')!;
-    this.u_saturation       = g.getUniformLocation(this.program, 'u_saturation')!;
-    this.u_brightness       = g.getUniformLocation(this.program, 'u_brightness')!;
-    this.u_shapeScale = g.getUniformLocation(this.program, 'u_shapeScale')!;
-    this.u_shapeRotation    = g.getUniformLocation(this.program, 'u_shapeRotation')!;
-    this.u_shapeTranslation = g.getUniformLocation(this.program, 'u_shapeTranslation')!;
-    this.u_shapeDistortion  = g.getUniformLocation(this.program, 'u_shapeDistortion')!;
-    this.u_shapeMorphing    = g.getUniformLocation(this.program, 'u_shapeMorphing')!;
-    this.u_shapeRipple      = g.getUniformLocation(this.program, 'u_shapeRipple')!;
-    this.u_shapeMaster      = g.getUniformLocation(this.program, 'u_shapeMaster')!;
-    this.u_oscillation      = g.getUniformLocation(this.program, 'u_oscillation')!;
-    this.u_pulsation        = g.getUniformLocation(this.program, 'u_pulsation')!;
-    this.u_speed            = g.getUniformLocation(this.program, 'u_speed')!;
-    this.u_noiseDeformation = g.getUniformLocation(this.program, 'u_noiseDeformation')!;
-    this.u_fractal          = g.getUniformLocation(this.program, 'u_fractal')!;
-    this.u_texNoise         = g.getUniformLocation(this.program, 'u_texNoise')!;
-    this.u_glitch           = g.getUniformLocation(this.program, 'u_glitch')!;
-    this.u_texturing        = g.getUniformLocation(this.program, 'u_texturing')!;
-    this.u_pixelation       = g.getUniformLocation(this.program, 'u_pixelation')!;
-    this.u_mosaic           = g.getUniformLocation(this.program, 'u_mosaic')!;
-    this.u_blend            = g.getUniformLocation(this.program, 'u_blend')!;
-    this.u_masterTexture    = g.getUniformLocation(this.program, 'u_masterTexture')!;
-    this.u_hz60             = g.getUniformLocation(this.program, 'u_hz60')!;
-    this.u_hz170            = g.getUniformLocation(this.program, 'u_hz170')!;
-    this.u_hz400            = g.getUniformLocation(this.program, 'u_hz400')!;
-    this.u_hz1khz           = g.getUniformLocation(this.program, 'u_hz1khz')!;
-    this.u_hz2_5khz         = g.getUniformLocation(this.program, 'u_hz2_5khz')!;
-    this.u_hz6khz           = g.getUniformLocation(this.program, 'u_hz6khz')!;
-    this.u_hz15khz          = g.getUniformLocation(this.program, 'u_hz15khz')!;
-    this.u_masterAmp        = g.getUniformLocation(this.program, 'u_masterAmp')!;
+    this.a_position = g.getAttribLocation(this.program, 'a_position');
+    this.u_time = g.getUniformLocation(this.program, 'u_time')!;
+    this.u_audio = g.getUniformLocation(this.program, 'u_audio')!;
 
-    // create quad buffer
+    this.u_hueShift = g.getUniformLocation(this.program, 'u_hueShift')!;
+    this.u_saturation = g.getUniformLocation(this.program, 'u_saturation')!;
+    this.u_brightness = g.getUniformLocation(this.program, 'u_brightness')!;
+
+    this.u_shapeScale = g.getUniformLocation(this.program, 'u_shapeScale')!;
+    this.u_shapeRotation = g.getUniformLocation(this.program, 'u_shapeRotation')!;
+    this.u_shapeTranslation = g.getUniformLocation(this.program, 'u_shapeTranslation')!;
+    this.u_shapeDistortion = g.getUniformLocation(this.program, 'u_shapeDistortion')!;
+    this.u_shapeMorphing = g.getUniformLocation(this.program, 'u_shapeMorphing')!;
+    this.u_shapeRipple = g.getUniformLocation(this.program, 'u_shapeRipple')!;
+    this.u_shapeMaster = g.getUniformLocation(this.program, 'u_shapeMaster')!;
+
+    this.u_oscillation = g.getUniformLocation(this.program, 'u_oscillation')!;
+    this.u_pulsation = g.getUniformLocation(this.program, 'u_pulsation')!;
+    this.u_speed = g.getUniformLocation(this.program, 'u_speed')!;
+
+    this.u_noiseDeformation = g.getUniformLocation(this.program, 'u_noiseDeformation')!;
+    this.u_fractal = g.getUniformLocation(this.program, 'u_fractal')!;
+
+    this.u_texNoise = g.getUniformLocation(this.program, 'u_texNoise')!;
+    this.u_glitch = g.getUniformLocation(this.program, 'u_glitch')!;
+    this.u_texturing = g.getUniformLocation(this.program, 'u_texturing')!;
+    this.u_pixelation = g.getUniformLocation(this.program, 'u_pixelation')!;
+    this.u_mosaic = g.getUniformLocation(this.program, 'u_mosaic')!;
+    this.u_blend = g.getUniformLocation(this.program, 'u_blend')!;
+    this.u_masterTexture = g.getUniformLocation(this.program, 'u_masterTexture')!;
+
+    this.u_hz60 = g.getUniformLocation(this.program, 'u_hz60')!;
+    this.u_hz170 = g.getUniformLocation(this.program, 'u_hz170')!;
+    this.u_hz400 = g.getUniformLocation(this.program, 'u_hz400')!;
+    this.u_hz1khz = g.getUniformLocation(this.program, 'u_hz1khz')!;
+    this.u_hz2_5khz = g.getUniformLocation(this.program, 'u_hz2_5khz')!;
+    this.u_hz6khz = g.getUniformLocation(this.program, 'u_hz6khz')!;
+    this.u_hz15khz = g.getUniformLocation(this.program, 'u_hz15khz')!;
+    this.u_masterAmp = g.getUniformLocation(this.program, 'u_masterAmp')!;
+
     const quad = new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]);
     this.positionBuffer = g.createBuffer()!;
     g.bindBuffer(g.ARRAY_BUFFER, this.positionBuffer);
@@ -271,7 +282,7 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
       const gains = this.settings.spectrumAmplitude;
       const eqGains = [
         gains.hz60, gains.hz170, gains.hz400,
-        gains.hz1khz, gains.hz2_5khz,
+        gains.hz1khz, gains['hz2_5khz'],
         gains.hz6khz, gains.hz15khz
       ];
       let sumProd = 0, sumG = 0;
@@ -285,51 +296,48 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
       if (sumG > 0) audioVal = sumProd / sumG;
     }
 
-    // viewport & clear
     const canvas = this.canvasRef.nativeElement;
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.useProgram(this.program);
 
-    // bind quad
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
     gl.enableVertexAttribArray(this.a_position);
     gl.vertexAttribPointer(this.a_position, 2, gl.FLOAT, false, 0, 0);
 
-    // upload uniforms
     const t = performance.now() * 0.001;
     gl.uniform1f(this.u_time, t);
     gl.uniform1f(this.u_audio, audioVal);
 
     const ce = this.settings.colorEffects;
-    gl.uniform1f(this.u_hueShift, ce.hueShift);
-    gl.uniform1f(this.u_saturation, ce.saturation);
-    gl.uniform1f(this.u_brightness, ce.brightness);
+    gl.uniform1f(this.u_hueShift, ce.hueShift + audioVal * 10.0);
+    gl.uniform1f(this.u_saturation, ce.saturation * (1.0 + audioVal * 0.5));
+    gl.uniform1f(this.u_brightness, ce.brightness * (1.0 + audioVal * 0.5));
 
     const sge = this.settings.shapeGeometryEffects;
-    gl.uniform1f(this.u_shapeScale, sge.scale);
-    gl.uniform1f(this.u_shapeRotation, sge.rotation * 0.0174533);
-    gl.uniform1f(this.u_shapeTranslation, sge.translation);
-    gl.uniform1f(this.u_shapeDistortion, sge.distortion);
-    gl.uniform1f(this.u_shapeMorphing, sge.morphing);
-    gl.uniform1f(this.u_shapeRipple, sge.ripple);
-    gl.uniform1f(this.u_shapeMaster, sge.master);
+    gl.uniform1f(this.u_shapeScale, sge.scale * (1.0 + audioVal * 0.3));
+    gl.uniform1f(this.u_shapeRotation, (sge.rotation + audioVal * 30.0) * 0.0174533);
+    gl.uniform1f(this.u_shapeTranslation, sge.translation * (1.0 + audioVal));
+    gl.uniform1f(this.u_shapeDistortion, sge.distortion * audioVal);
+    gl.uniform1f(this.u_shapeMorphing, sge.morphing * audioVal);
+    gl.uniform1f(this.u_shapeRipple, sge.ripple * audioVal);
+    gl.uniform1f(this.u_shapeMaster, sge.master * (1.0 + audioVal * 0.5));
 
     const mte = this.settings.motionTemporalEffects;
     gl.uniform1f(this.u_oscillation, mte.oscillation);
     gl.uniform1f(this.u_pulsation, mte.pulsation);
-    gl.uniform1f(this.u_speed, mte.speed);
+    gl.uniform1f(this.u_speed, mte.speed * (1.0 + audioVal * 0.5));
 
-    gl.uniform1f(this.u_noiseDeformation, this.settings.noiseDeformation === 'option1' ? 1 : 0);
-    gl.uniform1f(this.u_fractal, this.settings.fractalKaleidoscopicEffects === 'option1' ? 1 : 0);
+    gl.uniform1f(this.u_noiseDeformation, this.settings.noiseDeformation === 'option1' ? 1.0 : 0.0);
+    gl.uniform1f(this.u_fractal, this.settings.fractalKaleidoscopicEffects === 'option1' ? 1.0 : 0.0);
 
     const tse = this.settings.textureSpecialEffects;
-    gl.uniform1f(this.u_texNoise, tse.noise);
-    gl.uniform1f(this.u_glitch, tse.glitch);
-    gl.uniform1f(this.u_texturing, tse.texturing);
+    gl.uniform1f(this.u_texNoise, tse.noise * audioVal);
+    gl.uniform1f(this.u_glitch, tse.glitch * audioVal);
+    gl.uniform1f(this.u_texturing, tse.texturing * audioVal);
     gl.uniform1f(this.u_pixelation, tse.pixelation);
     gl.uniform1f(this.u_mosaic, tse.mosaic);
-    gl.uniform1f(this.u_blend, tse.blend);
+    gl.uniform1f(this.u_blend, tse.blend * audioVal);
     gl.uniform1f(this.u_masterTexture, tse.master);
 
     const sa = this.settings.spectrumAmplitude;
@@ -342,7 +350,6 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
     gl.uniform1f(this.u_hz15khz, sa.hz15khz);
     gl.uniform1f(this.u_masterAmp, sa.master);
 
-    // draw & loop
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     requestAnimationFrame(() => this.render());
   }
