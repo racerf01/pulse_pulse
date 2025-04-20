@@ -1,4 +1,5 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { AudioInputService, AudioSourceKind } from '../../../services/audio-input.service';
 
 @Component({
   selector: 'app-player',
@@ -6,15 +7,21 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
   styleUrls: ['./player.component.scss'],
   standalone: false
 })
-export class PlayerComponent {
+export class PlayerComponent implements AfterViewInit {
   @ViewChild('audioRef', { static: false }) audioRef!: ElementRef<HTMLAudioElement>;
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
+
+  constructor(private audioSvc: AudioInputService) { }  
 
   // Initial audio source is set to a default sample file.
   audioSrc: string = 'assets/sample.mp3';
   isPlaying = false;
   currentTime = 0;
   duration = 0;
+
+  ngAfterViewInit(): void {
+    this.audioSvc.connectMediaElement(this.audioRef.nativeElement);
+  }
 
   /**
    * Called after audio metadata is loaded and we know the duration.
@@ -99,19 +106,13 @@ export class PlayerComponent {
   /**
    * Handle the file selection and load the selected music file.
    */
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      // Create an object URL for the selected file.
-      const fileURL = URL.createObjectURL(file);
-      this.audioSrc = fileURL;
-      const audioEl = this.audioRef.nativeElement;
-      audioEl.src = fileURL;
-      audioEl.load();
-      // Optionally, automatically start playing:
-      audioEl.play();
-      this.isPlaying = true;
-    }
+  onFileSelected(evt: Event): void {
+    const file = (evt.target as HTMLInputElement).files?.[0];
+    if (!file) { return; }
+
+    const url = URL.createObjectURL(file);
+    const el  = this.audioRef.nativeElement;
+    el.src = url; el.load(); el.play();
+    this.isPlaying = true;
   }
 }

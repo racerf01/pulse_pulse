@@ -1,9 +1,8 @@
 <div class="vertical-selector">
-    <div class="selector-circle"></div>
-    <div class="selector-circle"></div>
-    <div class="selector-circle"></div>
-    <div class="selector-circle"></div>
-    <div class="selector-circle"></div>
-    <div class="selector-circle"></div>
-    <div class="selector-circle"></div>
+    <div
+      *ngFor="let on of circles"
+      class="selector-circle"
+      [class.active]="on">
+    </div>
 </div>
+  

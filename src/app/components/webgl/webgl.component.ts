@@ -1,4 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { AudioInputService } from '../../services/audio-input.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-webgl',
@@ -24,20 +26,21 @@ export class WebglComponent implements AfterViewInit, OnChanges {
 
   private positionBuffer!: WebGLBuffer;
 
-  // Audio variables.
-  private audioContext!: AudioContext;
-  private analyser!: AnalyserNode;
-  private dataArray!: Uint8Array;
-  private microphoneStream: MediaStream | null = null;
+  private audioLevel = 0;
+  private sub!: Subscription;
+
+  constructor(private audioSvc: AudioInputService) {}
 
   ngAfterViewInit() {
     this.gl = this.canvasRef.nativeElement.getContext('webgl')!;
-    if (!this.gl) {
-      console.error('WebGL not supported!');
-      return;
-    }
+    if (!this.gl) { console.error('WebGL not supported'); return; }
+
     this.initWebGL();
-    this.setupAudio();
+
+    /* subscribe to analyser */
+    this.sub = this.audioSvc.audioLevel$
+      .subscribe(level => this.audioLevel = level);
+
     this.render();
   }
 
@@ -47,6 +50,8 @@ export class WebglComponent implements AfterViewInit, OnChanges {
       // Updated configuration will be used in the next render frame.
     }
   }
+
+  ngOnDestroy(): void { this.sub?.unsubscribe(); }
 
   initWebGL() {
     // Vertex shader: passes along positions and computes UV coordinates.
@@ -172,61 +177,32 @@ export class WebglComponent implements AfterViewInit, OnChanges {
     return program;
   }
 
-  // Set up the audio context and analyser.
-  async setupAudio() {
-    try {
-      this.microphoneStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.audioContext = new AudioContext();
-      const source = this.audioContext.createMediaStreamSource(this.microphoneStream);
-      this.analyser = this.audioContext.createAnalyser();
-      this.analyser.fftSize = 256;
-      const bufferLength = this.analyser.frequencyBinCount;
-      this.dataArray = new Uint8Array(bufferLength);
-      source.connect(this.analyser);
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
-    }
-  }
+  private render(): void {
+    const gl = this.gl;
+    gl.viewport(0, 0, this.canvasRef.nativeElement.width, this.canvasRef.nativeElement.height);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(this.program);
 
-  render() {
-    // Get audio level from the analyser.
-    let audioLevel = 0;
-    if (this.analyser) {
-      this.analyser.getByteFrequencyData(this.dataArray);
-      const sum = this.dataArray.reduce((acc, val) => acc + val, 0);
-      audioLevel = (sum / this.dataArray.length) / 255;
-    }
-    
-    this.gl.viewport(0, 0, this.canvasRef.nativeElement.width, this.canvasRef.nativeElement.height);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    this.gl.useProgram(this.program);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-    this.gl.enableVertexAttribArray(this.a_position);
-    this.gl.vertexAttribPointer(this.a_position, 2, this.gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+    gl.enableVertexAttribArray(this.a_position);
+    gl.vertexAttribPointer(this.a_position, 2, gl.FLOAT, false, 0, 0);
 
-    const time = performance.now() / 1000;
-    this.gl.uniform1f(this.u_time, time);
-    this.gl.uniform1f(this.u_audio, audioLevel);
+    const t = performance.now() * 0.001;
+    gl.uniform1f(this.u_time,  t);
+    gl.uniform1f(this.u_audio, this.audioLevel);
 
-    // Pass config values for color effects.
-    const hueShift = this.settings?.colorEffects?.hueShift ?? 0.0;
-    const saturation = this.settings?.colorEffects?.saturation ?? 1.0;
-    const brightness = this.settings?.colorEffects?.brightness ?? 1.0;
-    this.gl.uniform1f(this.u_hueShift, hueShift);
-    this.gl.uniform1f(this.u_saturation, saturation);
-    this.gl.uniform1f(this.u_brightness, brightness);
+    const ce  = this.settings?.colorEffects ?? {};
+    const sge = this.settings?.shapeGeometryEffects ?? {};
+    const mte = this.settings?.motionTemporalEffects ?? {};
 
-    // Pass scale factor from config.
-    const scale = this.settings?.shapeGeometryEffects?.scale ?? 1.0;
-    this.gl.uniform1f(this.u_scale, scale);
+    gl.uniform1f(this.u_hueShift,             ce.hueShift    ?? 0);
+    gl.uniform1f(this.u_saturation,           ce.saturation  ?? 1);
+    gl.uniform1f(this.u_brightness,           ce.brightness  ?? 1);
+    gl.uniform1f(this.u_scale,                sge.scale      ?? 1);
+    gl.uniform1f(this.u_oscillationFrequency, mte.oscillation?? 60);
+    gl.uniform1f(this.u_oscillationAmplitude, mte.pulsation  ?? .08);
 
-    // Pass oscillator parameters from config (using defaults if missing).
-    const oscFreq = this.settings?.motionTemporalEffects?.oscillation ?? 60.0;
-    const oscAmp  = this.settings?.motionTemporalEffects?.pulsation ?? 0.08;
-    this.gl.uniform1f(this.u_oscillationFrequency, oscFreq);
-    this.gl.uniform1f(this.u_oscillationAmplitude, oscAmp);
-
-    this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
     requestAnimationFrame(() => this.render());
   }
 }

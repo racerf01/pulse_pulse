@@ -1,4 +1,5 @@
-import { Component, ElementRef, HostListener, Output, EventEmitter, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, Output, EventEmitter, ViewChild, OnInit } from '@angular/core';
+import { AudioInputService, AudioSourceKind } from '../../services/audio-input.service';
 
 interface WebGlConfig {
   projectName: string;
@@ -54,8 +55,10 @@ interface WebGlConfig {
   styleUrls: ['./sidebar.component.scss'],
   standalone: false
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
   @Output() settingsChange = new EventEmitter<WebGlConfig>();
+
+  constructor(private audioSvc: AudioInputService) {}
 
   // Template references
   @ViewChild('optionsContainer', { static: true })
@@ -107,6 +110,22 @@ export class SidebarComponent {
     masterAmp: { min: 0, max: 1 }
   };
 
+  ngOnInit(): void {
+    this.switchInput(this.inputOption);   // start analyser on mic
+    this.onChange();                      // emit initial settings
+  }
+
+  private switchInput(id: string): void {
+    const map: Record<string, AudioSourceKind> = {
+      option1: AudioSourceKind.Microphone, // “Default Microphone”
+      option2: AudioSourceKind.File,       // “Music Import”
+      option3: AudioSourceKind.System      // “Device Sounds”
+    };
+    this.audioSvc.setInput(map[id]).catch(err =>
+      console.warn('Audio input rejected:', err)
+    );
+  }
+
   // Dropdown open state
   optionsOpen: boolean = false;
   toggleOptions(): void {
@@ -132,8 +151,8 @@ export class SidebarComponent {
     }
   }
 
-  onChange() {
-    const settings: WebGlConfig = {
+  onChange(): void {
+    const cfg: WebGlConfig = {
       projectName: this.projectName,
       colors: this.colors,
       colorEffects: this.colorEffects,
@@ -145,15 +164,17 @@ export class SidebarComponent {
       textureSpecialEffects: this.textureSpecialEffects,
       spectrumAmplitude: this.spectrumAmplitude
     };
-    console.log('Sidebar emitting settings:', settings);
-    this.settingsChange.emit(settings);
+    this.settingsChange.emit(cfg);
   }
 
-  updateDropdown(field: string, event: Event) {
-    const target = event.target as HTMLSelectElement;
-    const value = target.value;
+  updateDropdown(field: string, evt: Event) {
+    const value = (evt.target as HTMLSelectElement).value;
+
     if (field === 'inputOption') {
       this.inputOption = value;
+      if (value !== 'option2') {          // avoid calling File with no file
+        this.switchInput(value);
+      }
     } else if (field === 'templateOption') {
       this.templateOption = value;
     } else if (field === 'colorFilter') {
@@ -163,6 +184,7 @@ export class SidebarComponent {
     } else if (field === 'fractalKaleidoscopicEffects') {
       this.fractalKaleidoscopicEffects = value;
     }
+
     this.onChange();
   }
 
@@ -196,4 +218,6 @@ export class SidebarComponent {
     this.spectrumAmplitude = { ...this.spectrumAmplitude, master: value };
     this.onChange();
   }
+
+  
 }

@@ -1,14 +1,19 @@
 .vertical-selector {
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;   /* ⬅️ was column */
     gap: 6px;
     margin-bottom: 18px;
-}
-
-/* Individual circles in the vertical selector */
-.selector-circle {
+  }
+  
+  .selector-circle {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background-color: #606060; /* Adjust color as needed */
-}
+    background: #606060;          /* inactive */
+    transition: background 80ms;  /* smooth blink */
+  }
+  
+  .selector-circle.active {
+    background: #2fd17f;          /* bass hit colour */
+  }
+  
