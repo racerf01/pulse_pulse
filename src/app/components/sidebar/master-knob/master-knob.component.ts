@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, Renderer2 } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, Renderer2, SimpleChanges } from '@angular/core';
 
 @Component({
   selector: 'app-master-knob',
@@ -6,10 +6,11 @@ import { Component, ElementRef, EventEmitter, Input, Output, Renderer2 } from '@
   templateUrl: './master-knob.component.html',
   styleUrls: ['./master-knob.component.scss']
 })
-export class MasterKnobComponent {
+export class MasterKnobComponent implements OnInit, OnChanges {
   @Input() label?: string;
   @Input() min: number = 0;    // Example: 0
   @Input() max: number = 360;  // Example: 360
+  @Input() value: number = 0; 
   @Output() valueChange: EventEmitter<number> = new EventEmitter<number>();
 
   angle = 0;
@@ -20,6 +21,21 @@ export class MasterKnobComponent {
   private upListener!: () => void;
 
   constructor(private renderer: Renderer2, private elRef: ElementRef) {}
+
+  ngOnInit() {
+    this.updateAngleFromValue();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['value']) {
+      this.updateAngleFromValue();
+    }
+  }
+
+  private updateAngleFromValue() {
+    // invert your mapAngleToValue:
+    this.angle = ((this.value - this.min) / (this.max - this.min)) * 360;
+  }
 
   startRotation(event: MouseEvent) {
     event.preventDefault();

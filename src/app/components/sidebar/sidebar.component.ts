@@ -219,5 +219,58 @@ export class SidebarComponent implements OnInit {
     this.onChange();
   }
 
+  // Reset all knob‑based groups to 0
+  resetColorEffects() {
+    this.colorEffects = { hueShift: 0, saturation: 0, brightness: 0 };
+    this.onChange();
+  }
+
+  resetShapeEffects() {
+    this.shapeGeometryEffects = {
+      scale: 0,
+      rotation: 0,
+      translation: 0,
+      distortion: 0,
+      morphing: 0,
+      ripple: 0,
+      master: 0
+    };
+    this.onChange();
+  }
+
+  resetMotionEffects() {
+    this.motionTemporalEffects = { oscillation: 0, pulsation: 0, speed: 0 };
+    this.onChange();
+  }
+
+  resetTextureEffects() {
+    this.textureSpecialEffects = {
+      noise: 0,
+      glitch: 0,
+      texturing: 0,
+      pixelation: 0,
+      mosaic: 0,
+      blend: 0,
+      master: 0
+    };
+    this.onChange();
+  }
+
+  // Reset sliders (0–1) to 0.5 (i.e. 50%)
+  resetSpectrum() {
+    this.spectrumAmplitude = {
+      hz60: 0.5,
+      hz170: 0.5,
+      hz400: 0.5,
+      hz1khz: 0.5,
+      hz2_5khz: 0.5,
+      hz6khz: 0.5,
+      hz15khz: 0.5,
+      master: 0.5
+    };
+    this.onChange();
+  }
+
+
   
 }

@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, Renderer2 } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, Renderer2, SimpleChanges } from '@angular/core';
 
 @Component({
   selector: 'app-slider',
@@ -6,8 +6,9 @@ import { Component, ElementRef, EventEmitter, Input, Output, Renderer2 } from '@
   templateUrl: './slider.component.html',
   styleUrl: './slider.component.scss'
 })
-export class SliderComponent {
+export class SliderComponent implements OnInit, OnChanges {
   @Input() label?: string;
+  @Input() value: number = 0; 
   @Output() valueChange: EventEmitter<number> = new EventEmitter<number>();
 
   knobPosition = 50;  // starting value in percentage (0-100)
@@ -19,6 +20,22 @@ export class SliderComponent {
   private upListener!: () => void;
 
   constructor(private elRef: ElementRef, private renderer: Renderer2) {}
+
+  ngOnInit() {
+    this.updateKnobPosition();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['value']) {
+      this.updateKnobPosition();
+    }
+  }
+
+  private updateKnobPosition() {
+    // map 0–1 value to 6–94% track range
+    let p = this.value * 100;
+    this.knobPosition = Math.min(94, Math.max(6, p));
+  }
 
   startDrag(event: MouseEvent) {
     event.preventDefault();
