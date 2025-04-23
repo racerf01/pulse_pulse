@@ -1,21 +1,16 @@
-// sidebar.component.ts
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  OnChanges,
-  SimpleChanges,
-  ViewChild,
-  ElementRef,
-  HostListener
-} from '@angular/core';
+import { Component, ElementRef, HostListener, Output, EventEmitter, ViewChild, OnInit } from '@angular/core';
 import { AudioInputService, AudioSourceKind } from '../../services/audio-input.service';
 
-export interface WebGlConfig {
+interface WebGlConfig {
   projectName: string;
-  colors: { hex: string };
-  colorEffects: { hueShift: number; saturation: number; brightness: number };
+  colors: {
+    hex: string;
+  };
+  colorEffects: {
+    hueShift: number;
+    saturation: number;
+    brightness: number;
+  };
   colorFilter: string;
   shapeGeometryEffects: {
     scale: number;
@@ -27,7 +22,11 @@ export interface WebGlConfig {
     master: number;
   };
   noiseDeformation: string;
-  motionTemporalEffects: { oscillation: number; pulsation: number; speed: number };
+  motionTemporalEffects: {
+    oscillation: number;
+    pulsation: number;
+    speed: number;
+  };
   fractalKaleidoscopicEffects: string;
   textureSpecialEffects: {
     noise: number;
@@ -56,26 +55,30 @@ export interface WebGlConfig {
   styleUrls: ['./sidebar.component.scss'],
   standalone: false
 })
-export class SidebarComponent implements OnChanges {
-  @Input() settings!: WebGlConfig;
+export class SidebarComponent implements OnInit {
   @Output() settingsChange = new EventEmitter<WebGlConfig>();
 
-  @ViewChild('optionsContainer', { static: true }) optionsContainer!: ElementRef;
-  optionsOpen = false;
+  constructor(private audioSvc: AudioInputService) {}
 
-  // Local copies for binding:
-  projectName = '';
-  colors = { hex: '' };
+  // Template references
+  @ViewChild('optionsContainer', { static: true })
+  optionsContainer!: ElementRef;
+
+  // Use separate properties:
+  inputOption: string = 'option1';      // Default for Input dropdown
+  templateOption: string = 'option1';     // Default for Template dropdown
+
+  projectName: string = 'Untitled';
+  colors = { hex: '#ffffff' };
   colorEffects = { hueShift: 0, saturation: 1, brightness: 1 };
-  colorFilter = 'option1';
+  colorFilter: string = 'option1';
   shapeGeometryEffects = { scale: 1, rotation: 0, translation: 0, distortion: 0, morphing: 0, ripple: 0, master: 1 };
-  noiseDeformation = 'option1';
+  noiseDeformation: string = 'option1';
   motionTemporalEffects = { oscillation: 1, pulsation: 1, speed: 1 };
-  fractalKaleidoscopicEffects = 'option1';
+  fractalKaleidoscopicEffects: string = 'option1';
   textureSpecialEffects = { noise: 0, glitch: 0, texturing: 0, pixelation: 0, mosaic: 0, blend: 0, master: 1 };
   spectrumAmplitude = { hz60: 0, hz170: 0, hz400: 0, hz1khz: 0, hz2_5khz: 0, hz6khz: 0, hz15khz: 0, master: 1 };
 
-  // Ranges (for knobs)
   knobRanges = {
     hueShift: { min: 0, max: 360 },
     saturation: { min: 0, max: 2 },
@@ -107,113 +110,164 @@ export class SidebarComponent implements OnChanges {
     masterAmp: { min: 0, max: 1 }
   };
 
-  constructor(private audioSvc: AudioInputService) {}
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['settings'] && this.settings) {
-      const s = this.settings;
-      this.projectName               = s.projectName;
-      this.colors                    = { ...s.colors };
-      this.colorEffects              = { ...s.colorEffects };
-      this.colorFilter               = s.colorFilter;
-      this.shapeGeometryEffects      = { ...s.shapeGeometryEffects };
-      this.noiseDeformation          = s.noiseDeformation;
-      this.motionTemporalEffects     = { ...s.motionTemporalEffects };
-      this.fractalKaleidoscopicEffects = s.fractalKaleidoscopicEffects;
-      this.textureSpecialEffects     = { ...s.textureSpecialEffects };
-      this.spectrumAmplitude         = { ...s.spectrumAmplitude };
-    }
+  ngOnInit(): void {
+    this.switchInput(this.inputOption);   // start analyser on mic
+    this.onChange();                      // emit initial settings
   }
 
+  private switchInput(id: string): void {
+    const map: Record<string, AudioSourceKind> = {
+      option1: AudioSourceKind.Microphone, // “Default Microphone”
+      option2: AudioSourceKind.File,       // “Music Import”
+      option3: AudioSourceKind.System      // “Device Sounds”
+    };
+    this.audioSvc.setInput(map[id]).catch(err =>
+      console.warn('Audio input rejected:', err)
+    );
+  }
+
+  // Dropdown open state
+  optionsOpen: boolean = false;
+  toggleOptions(): void {
+    this.optionsOpen = !this.optionsOpen;
+  }
+
+  // Dummy actions for Import and Export
+  importProject(): void {
+    console.log('Import Project clicked');
+    this.optionsOpen = false;
+  }
+
+  exportProject(): void {
+    console.log('Export Project clicked');
+    this.optionsOpen = false;
+  }
+
+  // HostListener to close the dropdown on click outside
   @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
+  onDocumentClick(event: MouseEvent): void {
     if (this.optionsOpen && !this.optionsContainer.nativeElement.contains(event.target)) {
       this.optionsOpen = false;
     }
   }
 
-  toggleOptions() {
-    this.optionsOpen = !this.optionsOpen;
-  }
-
-  importProject() { /* … */ this.optionsOpen = false; }
-  exportProject() { /* … */ this.optionsOpen = false; }
-
-  public emitChange() {
-    this.settingsChange.emit({
+  onChange(): void {
+    const cfg: WebGlConfig = {
       projectName: this.projectName,
-      colors:      this.colors,
+      colors: this.colors,
       colorEffects: this.colorEffects,
-      colorFilter:  this.colorFilter,
+      colorFilter: this.colorFilter,
       shapeGeometryEffects: this.shapeGeometryEffects,
-      noiseDeformation:      this.noiseDeformation,
+      noiseDeformation: this.noiseDeformation,
       motionTemporalEffects: this.motionTemporalEffects,
       fractalKaleidoscopicEffects: this.fractalKaleidoscopicEffects,
       textureSpecialEffects: this.textureSpecialEffects,
-      spectrumAmplitude:     this.spectrumAmplitude
-    });
+      spectrumAmplitude: this.spectrumAmplitude
+    };
+    this.settingsChange.emit(cfg);
   }
 
   updateDropdown(field: string, evt: Event) {
-    const v = (evt.target as HTMLSelectElement).value;
-    switch (field) {
-      case 'colorFilter': this.colorFilter = v; break;
-      case 'noiseDeformation': this.noiseDeformation = v; break;
-      case 'fractalKaleidoscopicEffects': this.fractalKaleidoscopicEffects = v; break;
-      // add other dropdowns here…
+    const value = (evt.target as HTMLSelectElement).value;
+
+    if (field === 'inputOption') {
+      this.inputOption = value;
+      if (value !== 'option2') {          // avoid calling File with no file
+        this.switchInput(value);
+      }
+    } else if (field === 'templateOption') {
+      this.templateOption = value;
+    } else if (field === 'colorFilter') {
+      this.colorFilter = value;
+    } else if (field === 'noiseDeformation') {
+      this.noiseDeformation = value;
+    } else if (field === 'fractalKaleidoscopicEffects') {
+      this.fractalKaleidoscopicEffects = value;
     }
-    this.emitChange();
+
+    this.onChange();
   }
 
-  updateColorEffect(name: keyof typeof this.colorEffects, val: number) {
-    (this.colorEffects as any)[name] = val;
-    this.emitChange();
+  // Other update methods remain unchanged...
+  updateColorEffect(effectName: string, value: number) {
+    this.colorEffects = { ...this.colorEffects, [effectName]: value };
+    this.onChange();
   }
 
-  updateShapeEffect(name: keyof typeof this.shapeGeometryEffects, val: number) {
-    (this.shapeGeometryEffects as any)[name] = val;
-    this.emitChange();
+  updateShapeEffect(effectName: string, value: number) {
+    this.shapeGeometryEffects = { ...this.shapeGeometryEffects, [effectName]: value };
+    this.onChange();
   }
 
-  updateMotionTemporalEffect(name: keyof typeof this.motionTemporalEffects, val: number) {
-    (this.motionTemporalEffects as any)[name] = val;
-    this.emitChange();
+  updateMotionTemporalEffect(effectName: string, value: number) {
+    this.motionTemporalEffects = { ...this.motionTemporalEffects, [effectName]: value };
+    this.onChange();
   }
 
-  updateTextureEffect(name: keyof typeof this.textureSpecialEffects, val: number) {
-    (this.textureSpecialEffects as any)[name] = val;
-    this.emitChange();
+  updateTextureEffect(effectName: string, value: number) {
+    this.textureSpecialEffects = { ...this.textureSpecialEffects, [effectName]: value };
+    this.onChange();
   }
 
-  updateSpectrum(freq: keyof typeof this.spectrumAmplitude, val: number) {
-    (this.spectrumAmplitude as any)[freq] = val;
-    this.emitChange();
+  updateSpectrum(freqLabel: string, value: number) {
+    this.spectrumAmplitude = { ...this.spectrumAmplitude, [freqLabel]: value };
+    this.onChange();
   }
 
-  updateMasterSlider(val: number) {
-    this.spectrumAmplitude.master = val;
-    this.emitChange();
+  updateMasterSlider(value: number) {
+    this.spectrumAmplitude = { ...this.spectrumAmplitude, master: value };
+    this.onChange();
   }
 
-  // Resets:
+  // Reset all knob‑based groups to 0
   resetColorEffects() {
     this.colorEffects = { hueShift: 0, saturation: 0, brightness: 0 };
-    this.emitChange();
+    this.onChange();
   }
+
   resetShapeEffects() {
-    this.shapeGeometryEffects = { scale: 0, rotation: 0, translation: 0, distortion: 0, morphing: 0, ripple: 0, master: 0 };
-    this.emitChange();
+    this.shapeGeometryEffects = {
+      scale: 0,
+      rotation: 0,
+      translation: 0,
+      distortion: 0,
+      morphing: 0,
+      ripple: 0,
+      master: 0
+    };
+    this.onChange();
   }
+
   resetMotionEffects() {
     this.motionTemporalEffects = { oscillation: 0, pulsation: 0, speed: 0 };
-    this.emitChange();
+    this.onChange();
   }
+
   resetTextureEffects() {
-    this.textureSpecialEffects = { noise: 0, glitch: 0, texturing: 0, pixelation: 0, mosaic: 0, blend: 0, master: 0 };
-    this.emitChange();
+    this.textureSpecialEffects = {
+      noise: 0,
+      glitch: 0,
+      texturing: 0,
+      pixelation: 0,
+      mosaic: 0,
+      blend: 0,
+      master: 0
+    };
+    this.onChange();
   }
+
+  // Reset sliders (0–1) to 0.5 (i.e. 50%)
   resetSpectrum() {
-    this.spectrumAmplitude = { hz60: 0.5, hz170: 0.5, hz400: 0.5, hz1khz: 0.5, hz2_5khz: 0.5, hz6khz: 0.5, hz15khz: 0.5, master: 0.5 };
-    this.emitChange();
+    this.spectrumAmplitude = {
+      hz60: 0.5,
+      hz170: 0.5,
+      hz400: 0.5,
+      hz1khz: 0.5,
+      hz2_5khz: 0.5,
+      hz6khz: 0.5,
+      hz15khz: 0.5,
+      master: 0.5
+    };
+    this.onChange();
   }
 }

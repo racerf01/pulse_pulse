@@ -48,7 +48,7 @@ export class SliderComponent implements OnInit, OnChanges {
 
   private updateKnobPosition() {
     // map value (0…1) → knobPosition (6…94)
-    this.knobPosition = this.MIN_PCT + this.value * this.RANGE_PCT;
+    this.knobPosition = this.MAX_PCT - this.value * this.RANGE_PCT;
   }
 
   startDrag(event: MouseEvent) {
@@ -74,7 +74,7 @@ export class SliderComponent implements OnInit, OnChanges {
     this.knobPosition = Math.min(this.MAX_PCT, Math.max(this.MIN_PCT, pct));
 
     // emit normalized value: invert the mapping
-    const normalized = (this.knobPosition - this.MIN_PCT) / this.RANGE_PCT;
+    const normalized = 1 - (this.knobPosition - this.MIN_PCT) / this.RANGE_PCT;
     this.valueChange.emit(normalized);
   }
 
@@ -85,7 +85,7 @@ export class SliderComponent implements OnInit, OnChanges {
     this.upListener();
 
     // final emit (in case parent only cares on release)
-    const normalized = (this.knobPosition - this.MIN_PCT) / this.RANGE_PCT;
+    const normalized = 1 - (this.knobPosition - this.MIN_PCT) / this.RANGE_PCT;
     this.valueChange.emit(normalized);
   }
 }

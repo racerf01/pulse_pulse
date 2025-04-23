@@ -266,93 +266,114 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private render() {
-    const gl = this.gl;
+    const gl       = this.gl;
     const analyser = this.audioSvc.analyserNode;
-    let audioVal = this.audioLevel;
-
+  
+    /* ─── 1.  FFT ➜ per-band amplitudes (scaled by each slider) ─── */
+    const sa    = this.settings.spectrumAmplitude;
+    const gains = [
+      sa.hz60, sa.hz170, sa.hz400, sa.hz1khz,
+      sa['hz2_5khz'], sa.hz6khz, sa.hz15khz
+    ];
+    const bandAmps = new Float32Array(7);
+  
+    /* overall loudness before the master fader */
+    let audioVal = this.audioLevel;                 // fallback if analyser == null
+  
     if (analyser) {
-      const fftSize = analyser.fftSize;
       const binCount = analyser.frequencyBinCount;
       if (!this.freqData || this.freqData.length !== binCount) {
         this.freqData = new Uint8Array(binCount);
       }
       analyser.getByteFrequencyData(this.freqData);
-      const sr = analyser.context.sampleRate;
-      const binHz = sr / fftSize;
-      const gains = this.settings.spectrumAmplitude;
-      const eqGains = [
-        gains.hz60, gains.hz170, gains.hz400,
-        gains.hz1khz, gains['hz2_5khz'],
-        gains.hz6khz, gains.hz15khz
-      ];
-      let sumProd = 0, sumG = 0;
+  
+      const binHz = analyser.context.sampleRate / analyser.fftSize;
+      let sum = 0;
+  
       for (let i = 0; i < this.bandFreqs.length; i++) {
-        const freq = this.bandFreqs[i];
-        const idx = Math.min(binCount - 1, Math.floor(freq / binHz));
-        const lvl = this.freqData[idx] / 255;
-        sumProd += lvl * eqGains[i];
-        sumG += eqGains[i];
+        const bin   = Math.min(binCount - 1, Math.round(this.bandFreqs[i] / binHz));
+        const raw   = this.freqData[bin] / 255;          // 0-1 linear
+        const curved = Math.pow(raw, 1.7);               // little boost
+        const amp   = curved * gains[i];                 // per-band gain
+        bandAmps[i] = amp;
+  
+        sum += curved;                                   // for overall loudness
       }
-      if (sumG > 0) audioVal = sumProd / sumG;
+      audioVal = sum / this.bandFreqs.length;            // plain average 0-1
     }
-
+  
+    /* ─── 2.  Apply master slider to the global value ─── */
+    const master = sa.master;                // 0-1 from the UI
+    const scaledAudio = audioVal * master;   // if master = 0 ➜ 0
+  
+    /* ─── 3.  Draw ─── */
     const canvas = this.canvasRef.nativeElement;
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.useProgram(this.program);
-
+  
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
     gl.enableVertexAttribArray(this.a_position);
     gl.vertexAttribPointer(this.a_position, 2, gl.FLOAT, false, 0, 0);
-
+  
     const t = performance.now() * 0.001;
-    gl.uniform1f(this.u_time, t);
-    gl.uniform1f(this.u_audio, audioVal);
-
+    gl.uniform1f(this.u_time,  t);
+    gl.uniform1f(this.u_audio, scaledAudio);   // <── now GLOBAL × master
+  
+    /* ---- Color Effects -------------------------------------------------------- */
     const ce = this.settings.colorEffects;
-    gl.uniform1f(this.u_hueShift, ce.hueShift + audioVal * 10.0);
-    gl.uniform1f(this.u_saturation, ce.saturation * (1.0 + audioVal * 0.5));
-    gl.uniform1f(this.u_brightness, ce.brightness * (1.0 + audioVal * 0.5));
-
+    gl.uniform1f(this.u_hueShift,   ce.hueShift   + scaledAudio * 10.0);
+    gl.uniform1f(this.u_saturation, ce.saturation * (1.0 + scaledAudio * 0.5));
+    gl.uniform1f(this.u_brightness, ce.brightness * (1.0 + scaledAudio * 0.5));
+  
+    /* ---- Shape & Geometry ----------------------------------------------------- */
     const sge = this.settings.shapeGeometryEffects;
-    gl.uniform1f(this.u_shapeScale, sge.scale * (1.0 + audioVal * 0.3));
-    gl.uniform1f(this.u_shapeRotation, (sge.rotation + audioVal * 30.0) * 0.0174533);
-    gl.uniform1f(this.u_shapeTranslation, sge.translation * (1.0 + audioVal));
-    gl.uniform1f(this.u_shapeDistortion, sge.distortion * audioVal);
-    gl.uniform1f(this.u_shapeMorphing, sge.morphing * audioVal);
-    gl.uniform1f(this.u_shapeRipple, sge.ripple * audioVal);
-    gl.uniform1f(this.u_shapeMaster, sge.master * (1.0 + audioVal * 0.5));
-
+    gl.uniform1f(this.u_shapeScale,       sge.scale * (1.0 + scaledAudio * 0.3));
+    gl.uniform1f(this.u_shapeRotation,   (sge.rotation + scaledAudio * 30.0) * 0.0174533);
+    gl.uniform1f(this.u_shapeTranslation, sge.translation * (1.0 + scaledAudio));
+    gl.uniform1f(this.u_shapeDistortion,  sge.distortion * scaledAudio);
+    gl.uniform1f(this.u_shapeMorphing,    sge.morphing   * scaledAudio);
+    gl.uniform1f(this.u_shapeRipple,      sge.ripple     * scaledAudio);
+    gl.uniform1f(this.u_shapeMaster,      sge.master     * (1.0 + scaledAudio * 0.5));
+  
+    /* ---- Motion & Temporal ---------------------------------------------------- */
     const mte = this.settings.motionTemporalEffects;
     gl.uniform1f(this.u_oscillation, mte.oscillation);
-    gl.uniform1f(this.u_pulsation, mte.pulsation);
-    gl.uniform1f(this.u_speed, mte.speed * (1.0 + audioVal * 0.5));
-
-    gl.uniform1f(this.u_noiseDeformation, this.settings.noiseDeformation === 'option1' ? 1.0 : 0.0);
-    gl.uniform1f(this.u_fractal, this.settings.fractalKaleidoscopicEffects === 'option1' ? 1.0 : 0.0);
-
+    gl.uniform1f(this.u_pulsation,   mte.pulsation);
+    gl.uniform1f(this.u_speed,       mte.speed * (1.0 + scaledAudio * 0.5));
+  
+    /* ---- Toggles -------------------------------------------------------------- */
+    gl.uniform1f(this.u_noiseDeformation,
+                 this.settings.noiseDeformation === 'option1' ? 1.0 : 0.0);
+    gl.uniform1f(this.u_fractal,
+                 this.settings.fractalKaleidoscopicEffects === 'option1' ? 1.0 : 0.0);
+  
+    /* ---- Texture & Special Effects ------------------------------------------- */
     const tse = this.settings.textureSpecialEffects;
-    gl.uniform1f(this.u_texNoise, tse.noise * audioVal);
-    gl.uniform1f(this.u_glitch, tse.glitch * audioVal);
-    gl.uniform1f(this.u_texturing, tse.texturing * audioVal);
-    gl.uniform1f(this.u_pixelation, tse.pixelation);
-    gl.uniform1f(this.u_mosaic, tse.mosaic);
-    gl.uniform1f(this.u_blend, tse.blend * audioVal);
+    gl.uniform1f(this.u_texNoise,      tse.noise * scaledAudio);
+    gl.uniform1f(this.u_glitch,        tse.glitch * scaledAudio);
+    gl.uniform1f(this.u_texturing,     tse.texturing * scaledAudio);
+    gl.uniform1f(this.u_pixelation,    tse.pixelation);
+    gl.uniform1f(this.u_mosaic,        tse.mosaic);
+    gl.uniform1f(this.u_blend,         tse.blend * scaledAudio);
     gl.uniform1f(this.u_masterTexture, tse.master);
-
-    const sa = this.settings.spectrumAmplitude;
-    gl.uniform1f(this.u_hz60, sa.hz60);
-    gl.uniform1f(this.u_hz170, sa.hz170);
-    gl.uniform1f(this.u_hz400, sa.hz400);
-    gl.uniform1f(this.u_hz1khz, sa.hz1khz);
-    gl.uniform1f(this.u_hz2_5khz, sa['hz2_5khz']);
-    gl.uniform1f(this.u_hz6khz, sa.hz6khz);
-    gl.uniform1f(this.u_hz15khz, sa.hz15khz);
-    gl.uniform1f(this.u_masterAmp, sa.master);
-
+  
+    /* ---- Spectrum & Amplitude (per-band) ------------------------------------- */
+    gl.uniform1f(this.u_hz60,     bandAmps[0]);
+    gl.uniform1f(this.u_hz170,    bandAmps[1]);
+    gl.uniform1f(this.u_hz400,    bandAmps[2]);
+    gl.uniform1f(this.u_hz1khz,   bandAmps[3]);
+    gl.uniform1f(this.u_hz2_5khz, bandAmps[4]);
+    gl.uniform1f(this.u_hz6khz,   bandAmps[5]);
+    gl.uniform1f(this.u_hz15khz,  bandAmps[6]);
+  
+    /* (u_masterAmp is not needed now; keep if shader still references it) */
+    gl.uniform1f(this.u_masterAmp, master);
+  
+    /* ---- Draw ---------------------------------------------------------------- */
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     requestAnimationFrame(() => this.render());
-  }
+  }  
 
   private createShader(gl: WebGLRenderingContext, type: number, src: string) {
     const sh = gl.createShader(type)!;

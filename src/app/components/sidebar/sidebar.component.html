@@ -1,9 +1,9 @@
-<!-- sidebar.component.html -->
 <div class="sidebar-header">
-  <img src="pulse-pulse-logo.svg" alt="Logo" class="logo" width="120" />
+  <img src="pulse-pulse-logo.svg" alt="Project Logo" class="logo" width="120px" />
 
+  <!-- Options icon container -->
   <div class="options-container" #optionsContainer>
-    <img src="options.svg" class="options-icon" (click)="toggleOptions()" />
+    <img src="options.svg" alt="Options" class="options-icon" (click)="toggleOptions()" />
     <div class="options-dropdown" *ngIf="optionsOpen">
       <ul>
         <li (click)="importProject()">Import Project</li>
@@ -12,21 +12,61 @@
     </div>
   </div>
 
+  <!-- Project name -->
   <input
     type="text"
     [(ngModel)]="projectName"
-    (ngModelChange)="emitChange()"
     class="project-name"
     placeholder="Untitled"
+    (ngModelChange)="onChange()"
   />
 </div>
 
+<!-- Input Options -->
+<div class="sidebar-header">
+  <div class="input-header">
+    <a>Input</a>
+    <div class="status"></div>
+  </div>
+  <select
+    class="dropdown-selector"
+    [value]="inputOption"
+    (change)="updateDropdown('inputOption', $event)"
+  >
+    <option value="option1">Default Microphone</option>
+    <option value="option2">Music Import</option>
+    <option value="option3">Device Sounds</option>
+  </select>
+</div>
+
+<div class="sidebar-header">
+  <div class="input-header">
+    <a>Template</a>
+  </div>
+  <select
+    class="dropdown-selector"
+    [value]="templateOption"
+    (change)="updateDropdown('templateOption', $event)"
+  >
+    <option value="option1">Blue Waves</option>
+    <option value="option2">Dark Holes</option>
+    <option value="option3">Pulsatic Grid</option>
+    <option value="option4">Custom</option>
+  </select>
+</div>
+
+<div class="sidebar-header-sub" *ngIf="inputOption === 'option2'">
+  Player
+</div>
+<app-player *ngIf="inputOption === 'option2'"></app-player>
+
+<!-- Colors -->
 <div class="sidebar-header-sub">
   Colors
-  <span class="reset">Reset</span>
 </div>
-<app-colors-panel (hexChange)="emitChange()"></app-colors-panel>
+<app-colors-panel (hexChange)="onChange()"></app-colors-panel>
 
+<!-- Color Effects -->
 <div class="sidebar-header-sub">
   Color Effects
   <span class="reset" (click)="resetColorEffects()">Reset</span>
@@ -34,27 +74,45 @@
 <div class="knob-container">
   <app-medium-knob
     [value]="colorEffects.hueShift"
+    [label]="'hue shift'"
     [min]="knobRanges.hueShift.min"
     [max]="knobRanges.hueShift.max"
-    [label]="'hue shift'"
-    (valueChange)="updateColorEffect('hueShift',$event)"
+    (valueChange)="updateColorEffect('hueShift', $event)"
   ></app-medium-knob>
+
   <app-medium-knob
     [value]="colorEffects.saturation"
+    [label]="'saturation'"
     [min]="knobRanges.saturation.min"
     [max]="knobRanges.saturation.max"
-    [label]="'saturation'"
-    (valueChange)="updateColorEffect('saturation',$event)"
+    (valueChange)="updateColorEffect('saturation', $event)"
   ></app-medium-knob>
+
   <app-medium-knob
     [value]="colorEffects.brightness"
+    [label]="'brightness'"
     [min]="knobRanges.brightness.min"
     [max]="knobRanges.brightness.max"
-    [label]="'brightness'"
-    (valueChange)="updateColorEffect('brightness',$event)"
+    (valueChange)="updateColorEffect('brightness', $event)"
   ></app-medium-knob>
 </div>
 
+<!-- Color Filter -->
+<div class="sidebar-header-sub">
+  <div class="input-header">
+    <a>Color Filter</a>
+  </div>
+  <select
+    class="dropdown-selector"
+    [value]="colorFilter"
+    (change)="updateDropdown('colorFilter', $event)"
+  >
+    <option value="option1">On</option>
+    <option value="option2">Off</option>
+  </select>
+</div>
+
+<!-- Shape & Geometry Effects -->
 <div class="sidebar-header-sub">
   Shape & Geometry Effects
   <span class="reset" (click)="resetShapeEffects()">Reset</span>
@@ -63,47 +121,193 @@
   <div class="knobs-grid">
     <app-small-knob
       [value]="shapeGeometryEffects.scale"
+      [label]="'scale'"
       [min]="knobRanges.scale.min"
       [max]="knobRanges.scale.max"
-      [label]="'scale'"
-      (valueChange)="updateShapeEffect('scale',$event)"
+      (valueChange)="updateShapeEffect('scale', $event)"
     ></app-small-knob>
-    <!-- repeat for rotation, translation, distortion, morphing, ripple -->
+
+    <app-small-knob
+      [value]="shapeGeometryEffects.rotation"
+      [label]="'rotation'"
+      [min]="knobRanges.rotation.min"
+      [max]="knobRanges.rotation.max"
+      (valueChange)="updateShapeEffect('rotation', $event)"
+    ></app-small-knob>
+
+    <app-small-knob
+      [value]="shapeGeometryEffects.translation"
+      [label]="'translation'"
+      [min]="knobRanges.translation.min"
+      [max]="knobRanges.translation.max"
+      (valueChange)="updateShapeEffect('translation', $event)"
+    ></app-small-knob>
+
+    <app-small-knob
+      [value]="shapeGeometryEffects.distortion"
+      [label]="'distortion'"
+      [min]="knobRanges.distortion.min"
+      [max]="knobRanges.distortion.max"
+      (valueChange)="updateShapeEffect('distortion', $event)"
+    ></app-small-knob>
+
+    <app-small-knob
+      [value]="shapeGeometryEffects.morphing"
+      [label]="'morphing'"
+      [min]="knobRanges.morphing.min"
+      [max]="knobRanges.morphing.max"
+      (valueChange)="updateShapeEffect('morphing', $event)"
+    ></app-small-knob>
+
+    <app-small-knob
+      [value]="shapeGeometryEffects.ripple"
+      [label]="'ripple'"
+      [min]="knobRanges.ripple.min"
+      [max]="knobRanges.ripple.max"
+      (valueChange)="updateShapeEffect('ripple', $event)"
+    ></app-small-knob>
   </div>
+
+  <app-rythm-bar></app-rythm-bar>
+
   <app-master-knob
     [value]="shapeGeometryEffects.master"
+    [label]="'master'"
     [min]="knobRanges.master.min"
     [max]="knobRanges.master.max"
-    [label]="'master'"
-    (valueChange)="updateShapeEffect('master',$event)"
+    (valueChange)="updateShapeEffect('master', $event)"
   ></app-master-knob>
 </div>
 
+<!-- Noise Deformation -->
+<div class="sidebar-header-sub">
+  <div class="input-header">
+    <a>Noise Deformation</a>
+  </div>
+  <select
+    class="dropdown-selector"
+    [value]="noiseDeformation"
+    (change)="updateDropdown('noiseDeformation', $event)"
+  >
+    <option value="option1">On</option>
+    <option value="option2">Off</option>
+  </select>
+</div>
+
+<!-- Motion & Temporal Effects -->
 <div class="sidebar-header-sub">
   Motion & Temporal Effects
   <span class="reset" (click)="resetMotionEffects()">Reset</span>
 </div>
 <div class="knob-container">
-  <!-- oscillation, pulsation, speed knobs -->
+  <app-medium-knob
+    [value]="motionTemporalEffects.oscillation"
+    [label]="'oscillation'"
+    [min]="knobRanges.oscillation.min"
+    [max]="knobRanges.oscillation.max"
+    (valueChange)="updateMotionTemporalEffect('oscillation', $event)"
+  ></app-medium-knob>
+
+  <app-medium-knob
+    [value]="motionTemporalEffects.pulsation"
+    [label]="'pulsation'"
+    [min]="knobRanges.pulsation.min"
+    [max]="knobRanges.pulsation.max"
+    (valueChange)="updateMotionTemporalEffect('pulsation', $event)"
+  ></app-medium-knob>
+
+  <app-medium-knob
+    [value]="motionTemporalEffects.speed"
+    [label]="'speed'"
+    [min]="knobRanges.speed.min"
+    [max]="knobRanges.speed.max"
+    (valueChange)="updateMotionTemporalEffect('speed', $event)"
+  ></app-medium-knob>
 </div>
 
+<!-- Fractal & Kaleidoscopic Effects -->
+<div class="sidebar-header-sub">
+  <div class="input-header">
+    <a>Fractal & Kaleidoscopic Effects</a>
+  </div>
+  <select
+    class="dropdown-selector"
+    [value]="fractalKaleidoscopicEffects"
+    (change)="updateDropdown('fractalKaleidoscopicEffects', $event)"
+  >
+    <option value="option1">On</option>
+    <option value="option2">Off</option>
+  </select>
+</div>
+
+<!-- Texture & Special Effects -->
 <div class="sidebar-header-sub">
   Texture & Special Effects
   <span class="reset" (click)="resetTextureEffects()">Reset</span>
 </div>
 <div class="shape-geometry-container">
   <div class="knobs-grid">
-    <!-- noise, glitch, texturing, pixelation, mosaic, blend knobs -->
+    <app-small-knob
+      [value]="textureSpecialEffects.noise"
+      [label]="'noise'"
+      [min]="knobRanges.noise.min"
+      [max]="knobRanges.noise.max"
+      (valueChange)="updateTextureEffect('noise', $event)"
+    ></app-small-knob>
+
+    <app-small-knob
+      [value]="textureSpecialEffects.glitch"
+      [label]="'glitch'"
+      [min]="knobRanges.glitch.min"
+      [max]="knobRanges.glitch.max"
+      (valueChange)="updateTextureEffect('glitch', $event)"
+    ></app-small-knob>
+
+    <app-small-knob
+      [value]="textureSpecialEffects.texturing"
+      [label]="'texturing'"
+      [min]="knobRanges.texturing.min"
+      [max]="knobRanges.texturing.max"
+      (valueChange)="updateTextureEffect('texturing', $event)"
+    ></app-small-knob>
+
+    <app-small-knob
+      [value]="textureSpecialEffects.pixelation"
+      [label]="'pixelation'"
+      [min]="knobRanges.pixelation.min"
+      [max]="knobRanges.pixelation.max"
+      (valueChange)="updateTextureEffect('pixelation', $event)"
+    ></app-small-knob>
+
+    <app-small-knob
+      [value]="textureSpecialEffects.mosaic"
+      [label]="'mosaic'"
+      [min]="knobRanges.mosaic.min"
+      [max]="knobRanges.mosaic.max"
+      (valueChange)="updateTextureEffect('mosaic', $event)"
+    ></app-small-knob>
+
+    <app-small-knob
+      [value]="textureSpecialEffects.blend"
+      [label]="'blend'"
+      [min]="knobRanges.blend.min"
+      [max]="knobRanges.blend.max"
+      (valueChange)="updateTextureEffect('blend', $event)"
+    ></app-small-knob>
   </div>
+
+  <app-rythm-bar></app-rythm-bar>
+
   <app-master-knob
     [value]="textureSpecialEffects.master"
+    [label]="'master'"
     [min]="knobRanges.masterTexture.min"
     [max]="knobRanges.masterTexture.max"
-    [label]="'master'"
-    (valueChange)="updateTextureEffect('master',$event)"
+    (valueChange)="updateTextureEffect('master', $event)"
   ></app-master-knob>
 </div>
 
+<!-- Spectrum & Amplitude -->
 <div class="sidebar-header-sub">
   Spectrum & Amplitude
   <span class="reset" (click)="resetSpectrum()">Reset</span>
@@ -112,9 +316,53 @@
   <app-slider
     [value]="spectrumAmplitude.hz60"
     [label]="'60 hz'"
-    (valueChange)="updateSpectrum('hz60',$event)"
+    (valueChange)="updateSpectrum('hz60', $event)"
   ></app-slider>
-  <!-- repeat for hz170, hz400, hz1khz, hz2_5khz, hz6khz, hz15khz -->
+  <app-slider
+    [value]="spectrumAmplitude.hz170"
+    [label]="'170 hz'"
+    (valueChange)="updateSpectrum('hz170', $event)"
+  ></app-slider>
+  <app-slider
+    [value]="spectrumAmplitude.hz400"
+    [label]="'400 hz'"
+    (valueChange)="updateSpectrum('hz400', $event)"
+  ></app-slider>
+  <app-slider
+    [value]="spectrumAmplitude.hz1khz"
+    [label]="'1 khz'"
+    (valueChange)="updateSpectrum('hz1khz', $event)"
+  ></app-slider>
+  <app-slider
+    [value]="spectrumAmplitude.hz2_5khz"
+    [label]="'2.5 khz'"
+    (valueChange)="updateSpectrum('hz2_5khz', $event)"
+  ></app-slider>
+  <app-slider
+    [value]="spectrumAmplitude.hz6khz"
+    [label]="'6 khz'"
+    (valueChange)="updateSpectrum('hz6khz', $event)"
+  ></app-slider>
+  <app-slider
+    [value]="spectrumAmplitude.hz15khz"
+    [label]="'15 khz'"
+    (valueChange)="updateSpectrum('hz15khz', $event)"
+  ></app-slider>
+
+  <div class="eq-lines">
+    <!-- decorative lines -->
+    <div class="eq-line"></div><div class="eq-line"></div>
+    <div class="eq-line"></div><div class="eq-line"></div>
+    <div class="eq-line"></div><div class="eq-line"></div>
+    <div class="eq-line"></div><div class="eq-line"></div>
+    <div class="eq-line"></div><div class="eq-line light"></div>
+    <div class="eq-line"></div><div class="eq-line"></div>
+    <div class="eq-line"></div><div class="eq-line"></div>
+    <div class="eq-line"></div><div class="eq-line"></div>
+    <div class="eq-line"></div><div class="eq-line"></div>
+    <div class="eq-line"></div>
+  </div>
+
   <app-slider
     [value]="spectrumAmplitude.master"
     [label]="'master'"
