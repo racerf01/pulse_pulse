@@ -66,5 +66,8 @@ export class SmallKnobComponent implements OnInit, OnChanges {
   stopRotation() {
     if (this.moveListener) { this.moveListener(); }
     if (this.upListener) { this.upListener(); }
+    this.elRef.nativeElement
+      .querySelector('.knob-rotating')
+      .classList.add('animate'); 
   }
 }

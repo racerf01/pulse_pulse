@@ -46,6 +46,9 @@ export class MediumKnobComponent implements OnInit, OnChanges {
     this.centerY = rect.top + rect.height / 2;
     this.moveListener = this.renderer.listen('window', 'mousemove', (e) => this.rotate(e));
     this.upListener = this.renderer.listen('window', 'mouseup', () => this.stopRotation());
+    this.elRef.nativeElement
+      .querySelector('.knob-rotating')
+      .classList.remove('animate'); 
   }
 
   // Maps a raw rotation angle (0-360°) into the given [min, max] range.
@@ -72,5 +75,8 @@ export class MediumKnobComponent implements OnInit, OnChanges {
   stopRotation() {
     if (this.moveListener) { this.moveListener(); }
     if (this.upListener) { this.upListener(); }
+    this.elRef.nativeElement
+      .querySelector('.knob-rotating')
+      .classList.add('animate'); 
   }
 }

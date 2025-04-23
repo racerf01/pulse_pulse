@@ -1,7 +1,6 @@
 <div class="app-container">
   <app-webgl    [settings]="currentSettings"></app-webgl>
   <app-sidebar 
-    [settings]="currentSettings"
     (settingsChange)="updateSettings($event)">
   </app-sidebar>
 </div>

@@ -45,6 +45,9 @@ export class MasterKnobComponent implements OnInit, OnChanges {
     this.centerY = rect.top + rect.height / 2;
     this.moveListener = this.renderer.listen('window', 'mousemove', (e) => this.rotate(e));
     this.upListener = this.renderer.listen('window', 'mouseup', () => this.stopRotation());
+    this.elRef.nativeElement
+      .querySelector('.knob-rotating')
+      .classList.remove('animate'); 
   }
 
   mapAngleToValue(rawAngle: number): number {
@@ -66,5 +69,8 @@ export class MasterKnobComponent implements OnInit, OnChanges {
   stopRotation() {
     if (this.moveListener) { this.moveListener(); }
     if (this.upListener) { this.upListener(); }
+    this.elRef.nativeElement
+      .querySelector('.knob-rotating')
+      .classList.add('animate'); 
   }
 }

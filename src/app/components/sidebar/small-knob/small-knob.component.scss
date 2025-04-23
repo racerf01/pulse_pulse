@@ -83,8 +83,7 @@
     text-align: center;
   }
 
-  .knob-rotating {
-    /* animate changes to transform (i.e. your rotate(angle) ) */
+  .knob-rotating.animate {
     transition: transform 0.2s ease-out;
   }
   
