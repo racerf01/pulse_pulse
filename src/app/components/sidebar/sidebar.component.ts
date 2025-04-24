@@ -3,9 +3,7 @@ import { AudioInputService, AudioSourceKind } from '../../services/audio-input.s
 
 interface WebGlConfig {
   projectName: string;
-  colors: {
-    hex: string;
-  };
+  colors: string[];
   colorEffects: {
     hueShift: number;
     saturation: number;
@@ -69,7 +67,7 @@ export class SidebarComponent implements OnInit {
   templateOption: string = 'option1';     // Default for Template dropdown
 
   projectName: string = 'Untitled';
-  colors = { hex: '#ffffff' };
+  colors: string[] = [];
   colorEffects = { hueShift: 0, saturation: 1, brightness: 1 };
   colorFilter: string = 'option1';
   shapeGeometryEffects = { scale: 1, rotation: 0, translation: 0, distortion: 0, morphing: 0, ripple: 0, master: 1 };
@@ -268,6 +266,11 @@ export class SidebarComponent implements OnInit {
       hz15khz: 0.5,
       master: 0.5
     };
+    this.onChange();
+  }
+
+  updateColors(p: string[]) {
+    this.colors = p;
     this.onChange();
   }
 }
