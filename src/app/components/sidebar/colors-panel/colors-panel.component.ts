@@ -1,37 +1,81 @@
-// colors-panel.component.ts
-import { Component, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnChanges,
+  SimpleChanges,
+  ViewChild,
+  ElementRef,
+  HostListener
+} from '@angular/core';
 
 @Component({
   selector   : 'app-colors-panel',
   templateUrl: './colors-panel.component.html',
   styleUrls  : ['./colors-panel.component.scss'],
-  standalone: false
+  standalone : false
 })
-export class ColorsPanelComponent {
-
-  colors: string[] = [];
-
-  /* <–– same “name” but now list ––> */
+export class ColorsPanelComponent implements OnChanges {
+  /** Always work with exactly five hex strings */
+  @Input()  colors!: string[];
   @Output() colorsChange = new EventEmitter<string[]>();
 
-  showColorPicker = false;
-  toggleColorPicker() { this.showColorPicker = !this.showColorPicker; }
+  @ViewChild('panelContainer', { static: true })
+  panelContainer!: ElementRef<HTMLElement>;
 
-  private push() { this.colorsChange.emit([...this.colors]); }
+  showColorPicker   = false;
+  private editingIndex: number | null = null;
+  editingColor      = '#ffffff';
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['colors']) {
+      const incoming = changes['colors'].currentValue as string[];
+      this.colors = incoming.slice(0, 5);
+      while (this.colors.length < 5) {
+        this.colors.push('#ffffff');
+      }
+    }
+  }
+
+  openPickerAt(idx: number) {
+    this.editingIndex = idx;
+    this.editingColor = this.colors[idx];
+    this.showColorPicker = true;
+  }
 
   onColorPickerChange(e: Event) {
-    this.colors.push((e.target as HTMLInputElement).value);
+    const hex = (e.target as HTMLInputElement).value;
+    if (this.editingIndex !== null) {
+      this.colors[this.editingIndex] = hex;
+    }
+    this.hidePickerAndEmit();
+  }
+
+  resetColor(idx: number) {
+    this.colors[idx] = '#ffffff';
+    this.emitColors();
+  }
+
+  private hidePickerAndEmit() {
     this.showColorPicker = false;
-    this.push();
+    this.editingIndex = null;
+    this.emitColors();
   }
 
-  selectColor(hex: string) {              // primary = bring to front
-    this.colors = [hex, ...this.colors.filter(c => c !== hex)];
-    this.push();
+  private emitColors() {
+    this.colorsChange.emit([...this.colors]);
   }
 
-  deleteColor(hex: string) {
-    this.colors = this.colors.filter(c => c !== hex);
-    this.push();
+  /** Close picker when clicking outside the panelContainer */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (
+      this.showColorPicker &&
+      this.panelContainer &&
+      !this.panelContainer.nativeElement.contains(event.target as Node)
+    ) {
+      this.hidePickerAndEmit();
+    }
   }
 }

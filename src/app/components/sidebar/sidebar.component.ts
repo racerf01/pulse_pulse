@@ -67,7 +67,13 @@ export class SidebarComponent implements OnInit {
   templateOption: string = 'option1';     // Default for Template dropdown
 
   projectName: string = 'Untitled';
-  colors: string[] = [];
+  colors: string[] = [
+    '#252732',
+    '#5e3332',
+    '#944236',
+    '#e44d0e',
+    '#f9833b'
+  ];
   colorEffects = { hueShift: 0, saturation: 1, brightness: 1 };
   colorFilter: string = 'option1';
   shapeGeometryEffects = { scale: 1, rotation: 0, translation: 0, distortion: 0, morphing: 0, ripple: 0, master: 1 };

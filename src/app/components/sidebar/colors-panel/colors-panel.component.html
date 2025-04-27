@@ -1,14 +1,17 @@
-<div class="color-container">
-  <div  *ngFor="let color of colors"
+<div #panelContainer>
+  <div class="color-container">
+    <div
+      *ngFor="let color of colors; let i = index"
       class="color-swatch"
       [ngStyle]="{'background-color': color}"
-      (click)="selectColor(color)">      <!-- was deleteColor -->
-  <div class="delete-icon" (click)="deleteColor(color); $event.stopPropagation()">×</div>
+      (click)="openPickerAt(i)">
+    </div>
   </div>
 
-  <div class="color-swatch add-color" (click)="toggleColorPicker()">+</div>
-</div>
-
-<div *ngIf="showColorPicker" class="inline-color-picker">
-  <input type="color" (change)="onColorPickerChange($event)" />
+  <div *ngIf="showColorPicker" class="inline-color-picker">
+    <input
+      type="color"
+      [value]="editingColor"
+      (change)="onColorPickerChange($event)" />
+  </div>
 </div>
