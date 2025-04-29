@@ -253,8 +253,8 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
         } else if (u_templateOption == 2.0) {
           // Sea Waves: layered ocean-like waves
           float lanes = mix(2.0, 6.0, u_shapeScale * 0.3);
-          float w1 = sin((uv.x * lanes - u_time * (u_speed + 0.3)) * 2.0);
-          float w2 = sin((uv.x * lanes * 0.8 + u_time * (u_speed * 0.7)) * 3.0);
+          float w1 = sin((uv.x * lanes - u_time * (u_speed + 0.3)) * 1.0);
+          float w2 = sin((uv.x * lanes * 0.8 + u_time * (u_speed * 0.7)) * 1.5);
           float wave = w1 + 0.5 * w2;
           float wNorm = clamp((wave + 1.0) * 0.5, 0.0, 1.0);
           float idxF = wNorm * 4.0;
@@ -268,10 +268,10 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
           else { c0 = u_color4; c1 = u_color4; }
           vec3 colBase = mix(c0, c1, frac);
           // fluid vertical displacement
-          uv.y += wave * u_shapeRipple * 0.05 * (1.0 + u_audio);
-          col = colBase * (1.0 + u_audio * 0.2);
+          uv.y += wave * u_shapeRipple * 0.02;
+          col = colBase;
           // slight shear for motion
-          float shear = u_audio * 0.1;
+          float shear = u_shapeRipple * 0.05;
           uv.x += shear * wave;
         } else {
           // Pixel Grid
@@ -487,11 +487,11 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
     const sge = this.settings.shapeGeometryEffects;
     const shapeMaster = sge.master;
     gl.uniform1f(this.u_shapeScale, sge.scale * (1.0 + scaledAudio * 0.3));
-    gl.uniform1f(this.u_shapeRotation,   (sge.rotation * shapeMaster + scaledAudio * 30.0) * 0.0174533);
-    gl.uniform1f(this.u_shapeTranslation, sge.translation * shapeMaster * (1.0 + scaledAudio));
+    gl.uniform1f(this.u_shapeRotation,   (sge.rotation * shapeMaster + scaledAudio * 10.0) * 0.0174533);
+    gl.uniform1f(this.u_shapeTranslation, sge.translation * shapeMaster * scaledAudio);
     gl.uniform1f(this.u_shapeDistortion,  sge.distortion * shapeMaster * scaledAudio);
     gl.uniform1f(this.u_shapeMorphing,    sge.morphing * shapeMaster * scaledAudio);
-    gl.uniform1f(this.u_shapeRipple,      sge.ripple * shapeMaster * scaledAudio);
+    gl.uniform1f(this.u_shapeRipple,      sge.ripple * shapeMaster * scaledAudio * 0.5);
     gl.uniform1f(this.u_shapeMaster,      shapeMaster * (1.0 + scaledAudio * 0.5));
   
     /* ---- Motion & Temporal ---------------------------------------------------- */
