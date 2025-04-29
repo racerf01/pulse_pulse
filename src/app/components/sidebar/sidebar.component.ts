@@ -1,5 +1,6 @@
-import { Component, ElementRef, HostListener, Output, EventEmitter, ViewChild, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, Output, EventEmitter, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { AudioInputService, AudioSourceKind } from '../../services/audio-input.service';
+import { Subscription } from 'rxjs';
 
 interface WebGlConfig {
   projectName: string;
@@ -53,7 +54,7 @@ interface WebGlConfig {
   styleUrls: ['./sidebar.component.scss'],
   standalone: false
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   @Output() settingsChange = new EventEmitter<WebGlConfig>();
 
   constructor(private audioSvc: AudioInputService) {}
@@ -75,7 +76,7 @@ export class SidebarComponent implements OnInit {
     '#f9833b'
   ];
   colorEffects = { hueShift: 0, saturation: 1, brightness: 1 };
-  colorFilter: string = 'option1';
+  colorFilter: string = 'none';
   shapeGeometryEffects = { scale: 1, rotation: 0, translation: 0, distortion: 0, morphing: 0, ripple: 0, master: 1 };
   noiseDeformation: string = 'option1';
   motionTemporalEffects = { oscillation: 1, pulsation: 1, speed: 1 };
@@ -114,16 +115,50 @@ export class SidebarComponent implements OnInit {
     masterAmp: { min: 0, max: 1 }
   };
 
+  inputActive: boolean = false; // True if input is active
+  blink: boolean = false;      // For blinking indicator
+  blinkOpacity: number = 1;
+  private blinkInterval: any;
+  private audioLevel: number = 0;
+  private blinkRaf: any;
+  private audioLevelSub?: Subscription;
+
   ngOnInit(): void {
     this.switchInput(this.inputOption);   // start analyser on mic
     this.onChange();                      // emit initial settings
+    this.subscribeToAudioLevel();
+  }
+
+  ngOnDestroy(): void {
+    if (this.blinkInterval) clearInterval(this.blinkInterval);
+    if (this.audioLevelSub) this.audioLevelSub.unsubscribe();
+    if (this.blinkRaf) cancelAnimationFrame(this.blinkRaf);
+  }
+
+  private subscribeToAudioLevel() {
+    this.audioLevelSub = this.audioSvc.audioLevel$.subscribe(level => {
+      this.audioLevel = level;
+      this.inputActive = level > 0.05;
+      if (!this.blinkRaf) this.blinkWithAudio();
+    });
+  }
+
+  private blinkWithAudio = () => {
+    if (this.inputActive) {
+      // Use a fixed sine wave for constant blinking
+      const t = performance.now() * 0.004; // ~1.5 Hz blink
+      this.blinkOpacity = 0.2 + 0.8 * (0.5 + 0.5 * Math.sin(t));
+    } else {
+      this.blinkOpacity = 1;
+    }
+    this.blinkRaf = requestAnimationFrame(this.blinkWithAudio);
   }
 
   private switchInput(id: string): void {
     const map: Record<string, AudioSourceKind> = {
-      option1: AudioSourceKind.Microphone, // “Default Microphone”
-      option2: AudioSourceKind.File,       // “Music Import”
-      option3: AudioSourceKind.System      // “Device Sounds”
+      option1: AudioSourceKind.Microphone, // "Default Microphone"
+      option2: AudioSourceKind.File,       // "Music Import"
+      option3: AudioSourceKind.System      // "Device Sounds"
     };
     this.audioSvc.setInput(map[id]).catch(err =>
       console.warn('Audio input rejected:', err)

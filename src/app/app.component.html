@@ -1,6 +1,15 @@
-<div class="app-container">
+<div class="app-container" [class.sidebar-is-hidden]="!sidebarVisible">
+  <button class="sidebar-toggle-btn" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+    <span *ngIf="sidebarVisible">⮜</span>
+    <span *ngIf="!sidebarVisible">⮞</span>
+  </button>
+  <button class="fullscreen-btn" (click)="toggleFullscreen()" aria-label="Toggle fullscreen">
+    <span *ngIf="!isFullscreen">⛶</span>
+    <span *ngIf="isFullscreen">🗗</span>
+  </button>
   <app-webgl    [settings]="currentSettings"></app-webgl>
   <app-sidebar 
+    [class.sidebar-hidden]="!sidebarVisible"
     (settingsChange)="updateSettings($event)">
   </app-sidebar>
 </div>

@@ -32,6 +32,9 @@ export class AppComponent {
     }
   };
 
+  sidebarVisible = true;
+  isFullscreen = false;
+
   // Called when sidebar emits new settings.
   updateSettings(newSettings: any) {
     console.log('AppComponent received settings:', newSettings);
@@ -125,4 +128,31 @@ export class AppComponent {
   
     return shaderSource;
   }  
+
+  toggleSidebar() {
+    this.sidebarVisible = !this.sidebarVisible;
+  }
+
+  toggleFullscreen() {
+    if (!this.isFullscreen) {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if ((elem as any).webkitRequestFullscreen) {
+        (elem as any).webkitRequestFullscreen();
+      } else if ((elem as any).msRequestFullscreen) {
+        (elem as any).msRequestFullscreen();
+      }
+      this.isFullscreen = true;
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+      this.isFullscreen = false;
+    }
+  }
 }

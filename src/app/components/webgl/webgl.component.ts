@@ -72,6 +72,14 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
   private u_hz15khz!: WebGLUniformLocation;
   private u_masterAmp!: WebGLUniformLocation;
 
+  private u_colorFilterType!: WebGLUniformLocation;
+
+  private u_color0!: WebGLUniformLocation;
+  private u_color1!: WebGLUniformLocation;
+  private u_color2!: WebGLUniformLocation;
+  private u_color3!: WebGLUniformLocation;
+  private u_color4!: WebGLUniformLocation;
+
   private sub!: Subscription;
   private audioLevel = 0;
 
@@ -146,6 +154,14 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
       uniform float u_hz15khz;
       uniform float u_masterAmp;
 
+      uniform float u_colorFilterType; // 0: none, 1: grayscale, 2: sepia, 3: invert, 4: brightness+, 5: contrast+, 6: hue rotate, 7: posterize, 8: threshold, 9: red only, 10: green only, 11: blue only, 12: tint blue, 13: tint red, 14: tint yellow
+
+      uniform vec3 u_color0;
+      uniform vec3 u_color1;
+      uniform vec3 u_color2;
+      uniform vec3 u_color3;
+      uniform vec3 u_color4;
+
       float noise(vec2 p) {
         return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453);
       }
@@ -155,6 +171,18 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
         p -= 0.5;
         p = mat2(c, -s, s, c) * p;
         return p + 0.5;
+      }
+
+      // --- Hue rotation utility ---
+      vec3 hueRotate(vec3 color, float angle) {
+        float c = cos(angle);
+        float s = sin(angle);
+        mat3 m = mat3(
+          0.299 + 0.701 * c + 0.168 * s, 0.587 - 0.587 * c + 0.330 * s, 0.114 - 0.114 * c - 0.497 * s,
+          0.299 - 0.299 * c - 0.328 * s, 0.587 + 0.413 * c + 0.035 * s, 0.114 - 0.114 * c + 0.292 * s,
+          0.299 - 0.300 * c + 1.250 * s, 0.587 - 0.588 * c - 1.050 * s, 0.114 + 0.886 * c - 0.203 * s
+        );
+        return clamp(m * color, 0.0, 1.0);
       }
 
       void main() {
@@ -172,13 +200,14 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
 
         // distortion & morphing modulated by audio
         if (u_noiseDeformation > 0.5) {
-          uv += (noise(uv * 5.0) - 0.5) * u_shapeDistortion * 0.01 * u_audio;
+          // Stronger and more obvious noise deformation
+          uv += (noise(uv * 5.0 + u_time * 0.5) - 0.5) * u_shapeDistortion * 0.04 * (0.5 + u_audio);
+          uv += (noise(uv * 20.0 + u_time) - 0.5) * u_shapeDistortion * 0.01 * (0.5 + u_audio); // high-frequency layer
         }
         uv += (noise(uv * 10.0) - 0.5) * u_shapeMorphing * 0.01;
 
         // ripple speed modulated
         uv += sin((uv.x + uv.y) * 10.0 + u_time * u_speed * (1.0 + u_masterAmp)) * u_shapeRipple * 0.001;
-        uv = (uv - 0.5) * u_shapeMaster + 0.5;
 
         // fractal toggle
         if (u_fractal > 0.5) {
@@ -189,7 +218,17 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
         float t = u_time * (1.0 + u_speed * 0.5);
         float a = pow(u_audio, 2.0);
         float osc = sin((uv.x + uv.y) * u_oscillation + t * u_pulsation + u_hueShift * 0.1);
-        vec3 col = vec3(osc * 0.5 + 0.5);
+        // 5x5 grid: assign color by (row + col) % 5
+        int row = int(floor(clamp(uv.y * 5.0, 0.0, 4.999)));
+        int colIdx = int(floor(clamp(uv.x * 5.0, 0.0, 4.999)));
+        int gridIdx = int(mod(float(row + colIdx), 5.0));
+        vec3 col;
+        if (gridIdx == 0) col = u_color0;
+        else if (gridIdx == 1) col = u_color1;
+        else if (gridIdx == 2) col = u_color2;
+        else if (gridIdx == 3) col = u_color3;
+        else col = u_color4;
+        col *= (osc * 0.5 + 0.5);
         
         // texture effects with audio
         col += noise(uv * 20.0 + t * 0.1) * u_texNoise * u_audio * 0.1;
@@ -209,6 +248,59 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
         // final tint by EQ master amp
         col.r += u_hz15khz * 0.1;
         col.b += u_hz60 * 0.1;
+
+        // --- Color Filter ---
+        if (u_colorFilterType == 1.0) {
+          gray = dot(col, vec3(0.299, 0.587, 0.114));
+          col = vec3(gray);
+        } else if (u_colorFilterType == 2.0) {
+          // Sepia
+          col = vec3(
+            dot(col, vec3(0.393, 0.769, 0.189)),
+            dot(col, vec3(0.349, 0.686, 0.168)),
+            dot(col, vec3(0.272, 0.534, 0.131))
+          );
+        } else if (u_colorFilterType == 3.0) {
+          col = vec3(1.0) - col;
+        } else if (u_colorFilterType == 4.0) {
+          // Brightness+
+          col = min(col * 1.3, 1.0);
+        } else if (u_colorFilterType == 5.0) {
+          // Contrast+
+          col = (col - 0.5) * 1.5 + 0.5;
+        } else if (u_colorFilterType == 6.0) {
+          // Hue Rotate (simple, rotates RGB channels)
+          col = col.rgb;
+          col = vec3(col.g, col.b, col.r);
+        } else if (u_colorFilterType == 7.0) {
+          // Posterize
+          col = floor(col * 4.0) / 4.0;
+        } else if (u_colorFilterType == 8.0) {
+          // Threshold
+          float avg = (col.r + col.g + col.b) / 3.0;
+          col = avg > 0.5 ? vec3(1.0) : vec3(0.0);
+        } else if (u_colorFilterType == 9.0) {
+          // Red Only
+          col = vec3(col.r, 0.0, 0.0);
+        } else if (u_colorFilterType == 10.0) {
+          // Green Only
+          col = vec3(0.0, col.g, 0.0);
+        } else if (u_colorFilterType == 11.0) {
+          // Blue Only
+          col = vec3(0.0, 0.0, col.b);
+        } else if (u_colorFilterType == 12.0) {
+          // Tint Blue
+          col = mix(col, vec3(0.2, 0.4, 1.0), 0.4);
+        } else if (u_colorFilterType == 13.0) {
+          // Tint Red
+          col = mix(col, vec3(1.0, 0.2, 0.2), 0.4);
+        } else if (u_colorFilterType == 14.0) {
+          // Tint Yellow
+          col = mix(col, vec3(1.0, 1.0, 0.2), 0.4);
+        }
+
+        // --- True hue shift (after all filters) ---
+        col = hueRotate(col, u_hueShift * 3.14159 / 180.0);
 
         gl_FragColor = vec4(col, 1.0);
       }
@@ -258,6 +350,14 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.u_hz6khz = g.getUniformLocation(this.program, 'u_hz6khz')!;
     this.u_hz15khz = g.getUniformLocation(this.program, 'u_hz15khz')!;
     this.u_masterAmp = g.getUniformLocation(this.program, 'u_masterAmp')!;
+
+    this.u_colorFilterType = g.getUniformLocation(this.program, 'u_colorFilterType')!;
+
+    this.u_color0 = g.getUniformLocation(this.program, 'u_color0')!;
+    this.u_color1 = g.getUniformLocation(this.program, 'u_color1')!;
+    this.u_color2 = g.getUniformLocation(this.program, 'u_color2')!;
+    this.u_color3 = g.getUniformLocation(this.program, 'u_color3')!;
+    this.u_color4 = g.getUniformLocation(this.program, 'u_color4')!;
 
     const quad = new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]);
     this.positionBuffer = g.createBuffer()!;
@@ -328,13 +428,14 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
   
     /* ---- Shape & Geometry ----------------------------------------------------- */
     const sge = this.settings.shapeGeometryEffects;
-    gl.uniform1f(this.u_shapeScale,       sge.scale * (1.0 + scaledAudio * 0.3));
-    gl.uniform1f(this.u_shapeRotation,   (sge.rotation + scaledAudio * 30.0) * 0.0174533);
-    gl.uniform1f(this.u_shapeTranslation, sge.translation * (1.0 + scaledAudio));
-    gl.uniform1f(this.u_shapeDistortion,  sge.distortion * scaledAudio);
-    gl.uniform1f(this.u_shapeMorphing,    sge.morphing   * scaledAudio);
-    gl.uniform1f(this.u_shapeRipple,      sge.ripple     * scaledAudio);
-    gl.uniform1f(this.u_shapeMaster,      sge.master     * (1.0 + scaledAudio * 0.5));
+    const shapeMaster = sge.master;
+    gl.uniform1f(this.u_shapeScale, sge.scale * (1.0 + scaledAudio * 0.3));
+    gl.uniform1f(this.u_shapeRotation,   (sge.rotation * shapeMaster + scaledAudio * 30.0) * 0.0174533);
+    gl.uniform1f(this.u_shapeTranslation, sge.translation * shapeMaster * (1.0 + scaledAudio));
+    gl.uniform1f(this.u_shapeDistortion,  sge.distortion * shapeMaster * scaledAudio);
+    gl.uniform1f(this.u_shapeMorphing,    sge.morphing * shapeMaster * scaledAudio);
+    gl.uniform1f(this.u_shapeRipple,      sge.ripple * shapeMaster * scaledAudio);
+    gl.uniform1f(this.u_shapeMaster,      shapeMaster * (1.0 + scaledAudio * 0.5));
   
     /* ---- Motion & Temporal ---------------------------------------------------- */
     const mte = this.settings.motionTemporalEffects;
@@ -350,13 +451,14 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
   
     /* ---- Texture & Special Effects ------------------------------------------- */
     const tse = this.settings.textureSpecialEffects;
-    gl.uniform1f(this.u_texNoise,      tse.noise * scaledAudio);
-    gl.uniform1f(this.u_glitch,        tse.glitch * scaledAudio);
-    gl.uniform1f(this.u_texturing,     tse.texturing * scaledAudio);
-    gl.uniform1f(this.u_pixelation,    tse.pixelation);
-    gl.uniform1f(this.u_mosaic,        tse.mosaic);
-    gl.uniform1f(this.u_blend,         tse.blend * scaledAudio);
-    gl.uniform1f(this.u_masterTexture, tse.master);
+    const textureMaster = tse.master;
+    gl.uniform1f(this.u_texNoise,      tse.noise * textureMaster * scaledAudio);
+    gl.uniform1f(this.u_glitch,        tse.glitch * textureMaster * scaledAudio);
+    gl.uniform1f(this.u_texturing,     tse.texturing * textureMaster * scaledAudio);
+    gl.uniform1f(this.u_pixelation,    tse.pixelation * textureMaster);
+    gl.uniform1f(this.u_mosaic,        tse.mosaic * textureMaster);
+    gl.uniform1f(this.u_blend,         tse.blend * textureMaster * scaledAudio);
+    gl.uniform1f(this.u_masterTexture, textureMaster);
   
     /* ---- Spectrum & Amplitude (per-band) ------------------------------------- */
     gl.uniform1f(this.u_hz60,     bandAmps[0]);
@@ -369,6 +471,42 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
   
     /* (u_masterAmp is not needed now; keep if shader still references it) */
     gl.uniform1f(this.u_masterAmp, master);
+  
+    /* ---- Color Filter Type ---- */
+    let filterType = 0.0;
+    switch (this.settings.colorFilter) {
+      case 'none': filterType = 0.0; break;
+      case 'grayscale': filterType = 1.0; break;
+      case 'sepia': filterType = 2.0; break;
+      case 'invert': filterType = 3.0; break;
+      case 'brightnessUp': filterType = 4.0; break;
+      case 'contrastUp': filterType = 5.0; break;
+      case 'hueRotate': filterType = 6.0; break;
+      case 'posterize': filterType = 7.0; break;
+      case 'threshold': filterType = 8.0; break;
+      case 'redOnly': filterType = 9.0; break;
+      case 'greenOnly': filterType = 10.0; break;
+      case 'blueOnly': filterType = 11.0; break;
+      case 'tintBlue': filterType = 12.0; break;
+      case 'tintRed': filterType = 13.0; break;
+      case 'tintYellow': filterType = 14.0; break;
+      default: filterType = 0.0;
+    }
+    gl.uniform1f(this.u_colorFilterType, filterType);
+  
+    // Set color uniforms from settings.colors (assume hex strings)
+    function hexToRgbNorm(hex: string) {
+      hex = hex.replace('#', '');
+      if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+      const num = parseInt(hex, 16);
+      return [((num >> 16) & 255) / 255, ((num >> 8) & 255) / 255, (num & 255) / 255];
+    }
+    const colorArr = this.settings.colors.map(hexToRgbNorm);
+    gl.uniform3fv(this.u_color0, colorArr[0] || [1,1,1]);
+    gl.uniform3fv(this.u_color1, colorArr[1] || [1,1,1]);
+    gl.uniform3fv(this.u_color2, colorArr[2] || [1,1,1]);
+    gl.uniform3fv(this.u_color3, colorArr[3] || [1,1,1]);
+    gl.uniform3fv(this.u_color4, colorArr[4] || [1,1,1]);
   
     /* ---- Draw ---------------------------------------------------------------- */
     gl.drawArrays(gl.TRIANGLES, 0, 6);

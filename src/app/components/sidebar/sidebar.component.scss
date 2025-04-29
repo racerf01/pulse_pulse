@@ -62,7 +62,7 @@
     text-align: end;
     background: transparent;    // Keep background clear
     border: none;               // Remove default border styling
-    color: #fff;                // Set text color (white, if that’s your design)
+    color: #fff;                // Set text color (white, if that's your design)
     font-weight: 300;
     
     /* Optional: remove outline on focus */
@@ -77,6 +77,14 @@
     width: 5px;
     background-color: #00FFBB;
     margin-top: 2px;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+.status.blinking {
+    opacity: 0.2;
+}
+.status.active {
+    opacity: 1;
 }
 
 .dropdown-selector {

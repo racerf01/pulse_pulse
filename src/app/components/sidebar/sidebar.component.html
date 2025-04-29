@@ -26,7 +26,7 @@
 <div class="sidebar-header">
   <div class="input-header">
     <a>Input</a>
-    <div class="status"></div>
+    <div class="status" [ngStyle]="{opacity: blinkOpacity}" [class.active]="inputActive"></div>
   </div>
   <select
     class="dropdown-selector"
@@ -48,7 +48,7 @@
     [value]="templateOption"
     (change)="updateDropdown('templateOption', $event)"
   >
-    <option value="option1">Blue Waves</option>
+    <option value="option1">Pixel Grid</option>
     <option value="option2">Dark Holes</option>
     <option value="option3">Pulsatic Grid</option>
     <option value="option4">Custom</option>
@@ -107,8 +107,21 @@
     [value]="colorFilter"
     (change)="updateDropdown('colorFilter', $event)"
   >
-    <option value="option1">On</option>
-    <option value="option2">Off</option>
+    <option value="none">No Filter</option>
+    <option value="grayscale">Grayscale</option>
+    <option value="sepia">Sepia</option>
+    <option value="invert">Invert</option>
+    <option value="brightnessUp">Brightness+</option>
+    <option value="contrastUp">Contrast+</option>
+    <option value="hueRotate">Hue Rotate</option>
+    <option value="posterize">Posterize</option>
+    <option value="threshold">Threshold</option>
+    <option value="redOnly">Red Only</option>
+    <option value="greenOnly">Green Only</option>
+    <option value="blueOnly">Blue Only</option>
+    <option value="tintBlue">Tint Blue</option>
+    <option value="tintRed">Tint Red</option>
+    <option value="tintYellow">Tint Yellow</option>
   </select>
 </div>
 

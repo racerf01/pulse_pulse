@@ -36,3 +36,64 @@ button {
     right: 0;
     top: 0;
 }
+
+.sidebar-toggle-btn {
+  position: fixed;
+  left: 380px;
+  top: 3%;
+  transform: translateY(-50%);
+  z-index: 100;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #000000dd;
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 8px #0003;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.sidebar-toggle-btn:hover {
+  background: #444c;
+}
+
+.fullscreen-btn {
+  position: fixed;
+  left: 380px;
+  top: 7%;
+  z-index: 100;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #000000dd;
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 8px #0003;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.fullscreen-btn:hover {
+  background: #444c;
+}
+
+.sidebar-hidden {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.3s;
+}
+
+.app-container.sidebar-is-hidden .sidebar-toggle-btn,
+.app-container.sidebar-is-hidden .fullscreen-btn {
+  left: 10px !important; // Move to the left edge
+}
