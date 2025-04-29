@@ -237,13 +237,12 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
         col += noise(uv * 5.0) * u_pixelation * 0.05;
         uv = floor(uv * (10.0 - u_mosaic)) / (10.0 - u_mosaic);
         col = mix(col, vec3(uv.x, uv.y, 1.0 - uv.x), u_blend * 0.1);
-        col *= u_masterTexture;
 
         // color adjustments + audio tint
         float gray = dot(col, vec3(0.3, 0.59, 0.11));
         if (u_saturation < 0.5) col = vec3(gray);
         col = mix(vec3(gray), col, u_saturation);
-        col *= u_brightness * (1.0 + u_masterAmp * a);
+        col *= u_brightness * (1.0 + a);
 
         // final tint by EQ master amp
         col.r += u_hz15khz * 0.1;
