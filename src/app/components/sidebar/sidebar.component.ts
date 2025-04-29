@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 
 interface WebGlConfig {
   projectName: string;
+  templateOption: string;
   colors: string[];
   colorEffects: {
     hueShift: number;
@@ -193,6 +194,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   onChange(): void {
     const cfg: WebGlConfig = {
       projectName: this.projectName,
+      templateOption: this.templateOption,
       colors: this.colors,
       colorEffects: this.colorEffects,
       colorFilter: this.colorFilter,

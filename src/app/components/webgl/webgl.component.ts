@@ -73,7 +73,7 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
   private u_masterAmp!: WebGLUniformLocation;
 
   private u_colorFilterType!: WebGLUniformLocation;
-
+  private u_templateOption!: WebGLUniformLocation;
   private u_color0!: WebGLUniformLocation;
   private u_color1!: WebGLUniformLocation;
   private u_color2!: WebGLUniformLocation;
@@ -155,6 +155,7 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
       uniform float u_masterAmp;
 
       uniform float u_colorFilterType; // 0: none, 1: grayscale, 2: sepia, 3: invert, 4: brightness+, 5: contrast+, 6: hue rotate, 7: posterize, 8: threshold, 9: red only, 10: green only, 11: blue only, 12: tint blue, 13: tint red, 14: tint yellow
+      uniform float u_templateOption; // 0: Pixel Grid, 1: Dark Holes, 2: Pulsatic Waves
 
       uniform vec3 u_color0;
       uniform vec3 u_color1;
@@ -217,18 +218,74 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
         // oscillator + audio reaction
         float t = u_time * (1.0 + u_speed * 0.5);
         float a = pow(u_audio, 2.0);
-        float osc = sin((uv.x + uv.y) * u_oscillation + t * u_pulsation + u_hueShift * 0.1);
-        // 5x5 grid: assign color by (row + col) % 5
-        int row = int(floor(clamp(uv.y * 5.0, 0.0, 4.999)));
-        int colIdx = int(floor(clamp(uv.x * 5.0, 0.0, 4.999)));
-        int gridIdx = int(mod(float(row + colIdx), 5.0));
         vec3 col;
-        if (gridIdx == 0) col = u_color0;
-        else if (gridIdx == 1) col = u_color1;
-        else if (gridIdx == 2) col = u_color2;
-        else if (gridIdx == 3) col = u_color3;
-        else col = u_color4;
-        col *= (osc * 0.5 + 0.5);
+        if (u_templateOption == 1.0) {
+          // Pixel-grid holes: one hole per 5×5 cell, with rotation
+          int row = int(floor(uv.y * 5.0));
+          int colC = int(floor(uv.x * 5.0));
+          int idx = int(mod(float(row + colC), 5.0));
+          vec3 colBase = idx==0 ? u_color0 : idx==1 ? u_color1 : idx==2 ? u_color2 : idx==3 ? u_color3 : u_color4;
+          // black hole core and accretion glow
+          float radiusBase = mix(0.12, 0.25, u_shapeDistortion * 0.7);
+          // make holes slide horizontally per row and vertically per column
+          vec2 cellUV = uv * 5.0;
+          float rowF = floor(cellUV.y);
+          float colF = floor(cellUV.x);
+          float slideX = sin(u_time * u_speed + rowF * 1.2) * 0.2;
+          float slideY = cos(u_time * u_speed + colF * 1.7) * 0.2;
+          cellUV.x += slideX;
+          cellUV.y += slideY;
+          vec2 gv = fract(cellUV) - 0.5;
+          float d = length(gv);
+          float pulse = 1.0 + u_audio * u_shapeMaster;
+          float r = radiusBase / pulse;
+          // make hole radius pulse over time
+          float sizeOsc = 1.0 + 0.3 * sin(u_time * u_speed * 2.0);
+          float rMod = r * sizeOsc;
+          // dark core mask (inside pulsating radius)
+          float holeMask = 1.0 - smoothstep(rMod * 0.8, rMod, d);
+          // glowing accretion ring just outside core
+          float ring = smoothstep(rMod * 0.9, rMod * 1.1, d) - smoothstep(rMod * 0.8, rMod * 0.9, d);
+          // combine base color core and ring glow
+          col = colBase * holeMask;
+          vec3 ringColor = mix(vec3(1.0), colBase, 0.5);
+          col += ring * ringColor * u_shapeMaster;
+        } else if (u_templateOption == 2.0) {
+          // Sea Waves: layered ocean-like waves
+          float lanes = mix(2.0, 6.0, u_shapeScale * 0.3);
+          float w1 = sin((uv.x * lanes - u_time * (u_speed + 0.3)) * 2.0);
+          float w2 = sin((uv.x * lanes * 0.8 + u_time * (u_speed * 0.7)) * 3.0);
+          float wave = w1 + 0.5 * w2;
+          float wNorm = clamp((wave + 1.0) * 0.5, 0.0, 1.0);
+          float idxF = wNorm * 4.0;
+          int i0 = int(floor(idxF));
+          float frac = fract(idxF);
+          vec3 c0; vec3 c1;
+          if (i0 == 0) { c0 = u_color0; c1 = u_color1; }
+          else if (i0 == 1) { c0 = u_color1; c1 = u_color2; }
+          else if (i0 == 2) { c0 = u_color2; c1 = u_color3; }
+          else if (i0 == 3) { c0 = u_color3; c1 = u_color4; }
+          else { c0 = u_color4; c1 = u_color4; }
+          vec3 colBase = mix(c0, c1, frac);
+          // fluid vertical displacement
+          uv.y += wave * u_shapeRipple * 0.05 * (1.0 + u_audio);
+          col = colBase * (1.0 + u_audio * 0.2);
+          // slight shear for motion
+          float shear = u_audio * 0.1;
+          uv.x += shear * wave;
+        } else {
+          // Pixel Grid
+          float osc = sin((uv.x + uv.y) * u_oscillation + t * u_pulsation + u_hueShift * 0.1);
+          int row = int(floor(clamp(uv.y * 5.0, 0.0, 4.999)));
+          int colI = int(floor(clamp(uv.x * 5.0, 0.0, 4.999)));
+          int gridIdx = int(mod(float(row + colI), 5.0));
+          if (gridIdx == 0) col = u_color0;
+          else if (gridIdx == 1) col = u_color1;
+          else if (gridIdx == 2) col = u_color2;
+          else if (gridIdx == 3) col = u_color3;
+          else col = u_color4;
+          col *= (osc * 0.5 + 0.5);
+        }
         
         // texture effects with audio
         col += noise(uv * 20.0 + t * 0.1) * u_texNoise * u_audio * 0.1;
@@ -352,7 +409,7 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.u_masterAmp = g.getUniformLocation(this.program, 'u_masterAmp')!;
 
     this.u_colorFilterType = g.getUniformLocation(this.program, 'u_colorFilterType')!;
-
+    this.u_templateOption = g.getUniformLocation(this.program, 'u_templateOption')!;
     this.u_color0 = g.getUniformLocation(this.program, 'u_color0')!;
     this.u_color1 = g.getUniformLocation(this.program, 'u_color1')!;
     this.u_color2 = g.getUniformLocation(this.program, 'u_color2')!;
@@ -493,6 +550,14 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
       default: filterType = 0.0;
     }
     gl.uniform1f(this.u_colorFilterType, filterType);
+    let tempType = 0.0;
+    switch (this.settings.templateOption) {
+      case 'option1': tempType = 0.0; break;
+      case 'option2': tempType = 1.0; break;
+      case 'option3': tempType = 2.0; break;
+      default: tempType = 0.0;
+    }
+    gl.uniform1f(this.u_templateOption, tempType);
   
     // Set color uniforms from settings.colors (assume hex strings)
     function hexToRgbNorm(hex: string) {
