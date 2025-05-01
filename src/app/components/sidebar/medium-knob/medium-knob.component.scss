@@ -13,6 +13,37 @@
     height: 80px;
     /* No border or background here, it just serves as a rotation container */
   }
+
+  .zero-dot {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 10px;
+    border-radius: 100px;
+    background-color: #606060;
+    pointer-events: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  /* Zero-dot active state */
+  .zero-dot.active {
+    background-color: #fff;
+  }
+  
+  /* Tooltip styling */
+  .knob-tooltip {
+    position: fixed;
+    background-color: rgba(0,0,0,0.75);
+    color: #fff;
+    padding: 2px 6px;
+    font-size: 10px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 1000;
+    white-space: nowrap;
+  }
   
   /* Actual knob (white circle) */
   .knob {
@@ -43,7 +74,7 @@
     height: 4px;
     border-radius: 50%;
     background-color: #606060;
-    pointer-events: none;  /* so they don’t block clicks on the knob */
+    pointer-events: none;  /* so they don't block clicks on the knob */
   }
   
   /* Place each corner in the correct spot relative to .knob-control */
@@ -80,4 +111,17 @@
   
   .knob-rotating.animate {
     transition: transform 0.2s ease-out;
+  }
+
+  /* Tooltip styling for medium knob */
+  .knob-tooltip {
+    position: fixed;
+    background-color: rgba(0,0,0,0.75);
+    color: #fff;
+    padding: 2px 6px;
+    font-size: 10px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 1000;
+    white-space: nowrap;
   }

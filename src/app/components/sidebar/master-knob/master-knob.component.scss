@@ -54,6 +54,38 @@
     pointer-events: none; /* Ensure they don't block mouse events */
   }
   
+  /* Zero position marker */
+  .zero-dot {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 10px;
+    border-radius: 100px;
+    background-color: #606060;
+    pointer-events: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  /* Zero-dot active state */
+  .zero-dot.active {
+    background-color: #fff;
+  }
+  
+  /* Tooltip styling */
+  .knob-tooltip {
+    position: fixed;
+    background-color: rgba(0,0,0,0.75);
+    color: #fff;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 1000;
+    white-space: nowrap;
+  }
+  
   /* Adjust the positions as needed */
   .top-left {
     top: 0;

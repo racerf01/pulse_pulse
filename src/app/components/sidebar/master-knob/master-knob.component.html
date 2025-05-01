@@ -6,6 +6,9 @@
       </div>
     </div>
     
+    <!-- Zero position dot -->
+    <div class="zero-dot" [class.active]="isAtZero"></div>
+    
     <!-- Fixed corners: these are positioned relative to .master-knob -->
     <div class="corner top-left"></div>
     <div class="corner top-right"></div>
@@ -13,5 +16,10 @@
     <div class="corner bottom-right"></div>
   
     <div class="knob-label">{{ label }}</div>
+    
+    <!-- Tooltip -->
+    <div *ngIf="showTooltip" class="knob-tooltip" [ngStyle]="{'left.px': tooltipX, 'top.px': tooltipY}">
+      {{ displayValue | number:'1.0-0' }}
+    </div>
   </div>
   

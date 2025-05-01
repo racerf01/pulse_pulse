@@ -16,6 +16,17 @@ export class SmallKnobComponent implements OnInit, OnChanges {
   // Store the angle if you want to show a visual indicator.
   angle = 0;
   
+  // Tooltip state for displaying value near cursor
+  tooltipX: number = 0;
+  tooltipY: number = 0;
+  showTooltip: boolean = false;
+  displayValue: number = 0;
+  
+  // Returns true if the knob is at zero (min) for styling zero-dot
+  get isAtZero(): boolean {
+    return Math.abs(this.value - this.min) < 0.001;
+  }
+
   private centerX!: number;
   private centerY!: number;
   private moveListener!: () => void;
@@ -40,6 +51,13 @@ export class SmallKnobComponent implements OnInit, OnChanges {
 
   startRotation(event: MouseEvent) {
     event.preventDefault();
+    // Initialize tooltip value on start
+    this.displayValue = this.value;
+    // Show tooltip when starting rotation
+    this.showTooltip = true;
+    // Position initial tooltip
+    this.tooltipX = event.clientX + 10;
+    this.tooltipY = event.clientY + 10;
     const rotatingEl = this.elRef.nativeElement.querySelector('.knob-rotating');
     const rect = rotatingEl.getBoundingClientRect();
     this.centerX = rect.left + rect.width / 2;
@@ -64,12 +82,17 @@ export class SmallKnobComponent implements OnInit, OnChanges {
     if (rawAngle < 0) {
       rawAngle += 360;
     }
-    // Update the component’s angle for visual feedback if needed.
+    // Update the component's angle for visual feedback if needed.
     this.angle = rawAngle;
     
     // Map the normalized angle to the provided min/max range.
     const mappedValue = this.mapAngleToValue(rawAngle);
+    // Update tooltip value
+    this.displayValue = mappedValue;
     this.valueChange.emit(mappedValue);
+    // Update tooltip position near cursor
+    this.tooltipX = event.clientX + 10;
+    this.tooltipY = event.clientY + 10;
   }
 
   stopRotation() {
@@ -78,5 +101,7 @@ export class SmallKnobComponent implements OnInit, OnChanges {
     this.elRef.nativeElement
       .querySelector('.knob-rotating')
       .classList.add('animate'); 
+    // Hide tooltip when stopping rotation
+    this.showTooltip = false;
   }
 }

@@ -13,8 +13,22 @@ export class MasterKnobComponent implements OnInit, OnChanges {
   @Input() value: number = 0; 
   @Output() valueChange: EventEmitter<number> = new EventEmitter<number>();
 
+  private static readonly EPS = 0.5; 
+
   angle = 0;
   
+  // Tooltip state for displaying value near cursor
+  tooltipX: number = 0;
+  tooltipY: number = 0;
+  showTooltip: boolean = false;
+  displayValue: number = 0;
+
+  // Returns true if the knob is at zero (min) for styling the zero-dot
+  get isAtZero(): boolean {
+    return this.angle < MasterKnobComponent.EPS ||
+           this.angle > 360 - MasterKnobComponent.EPS;
+  }
+
   private centerX!: number;
   private centerY!: number;
   private moveListener!: () => void;
@@ -39,6 +53,11 @@ export class MasterKnobComponent implements OnInit, OnChanges {
 
   startRotation(event: MouseEvent) {
     event.preventDefault();
+    // Initialize tooltip value and position
+    this.displayValue = this.value;
+    this.tooltipX = event.clientX + 10;
+    this.tooltipY = event.clientY + 10;
+    this.showTooltip = true;
     const rotatingEl = this.elRef.nativeElement.querySelector('.knob-rotating');
     const rect = rotatingEl.getBoundingClientRect();
     this.centerX = rect.left + rect.width / 2;
@@ -57,14 +76,23 @@ export class MasterKnobComponent implements OnInit, OnChanges {
   rotate(event: MouseEvent) {
     const deltaX = event.clientX - this.centerX;
     const deltaY = event.clientY - this.centerY;
-    let rawAngle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) + 90;
-    if (rawAngle < 0) {
-      rawAngle += 360;
-    }
+  
+    let rawAngle = Math.atan2(deltaY, deltaX) * 180 / Math.PI + 90;
+    if (rawAngle < 0) { rawAngle += 360; }
+  
     this.angle = rawAngle;
+  
     const mappedValue = this.mapAngleToValue(rawAngle);
-    this.valueChange.emit(mappedValue);
-  }
+  
+    this.value = mappedValue;          // ① ← add this
+  
+    // tooltip upkeep
+    this.displayValue = mappedValue;
+    this.tooltipX = event.clientX + 10;
+    this.tooltipY = event.clientY + 10;
+  
+    this.valueChange.emit(mappedValue); // parent still notified
+  }  
 
   stopRotation() {
     if (this.moveListener) { this.moveListener(); }
@@ -72,5 +100,7 @@ export class MasterKnobComponent implements OnInit, OnChanges {
     this.elRef.nativeElement
       .querySelector('.knob-rotating')
       .classList.add('animate'); 
+    // Hide tooltip when stopping rotation
+    this.showTooltip = false;
   }
 }
