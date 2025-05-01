@@ -13,5 +13,12 @@
       type="color"
       [value]="editingColor"
       (change)="onColorPickerChange($event)" />
+    <input
+      type="text"
+      class="hex-input"
+      [value]="editingColor"
+      (input)="onHexInputChange($event)"
+      maxlength="7"
+      placeholder="#RRGGBB" />
   </div>
 </div>

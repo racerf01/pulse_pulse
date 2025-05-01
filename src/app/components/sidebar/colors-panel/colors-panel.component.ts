@@ -52,6 +52,15 @@ export class ColorsPanelComponent implements OnChanges {
     this.hidePickerAndEmit();
   }
 
+  onHexInputChange(e: Event) {
+    const hex = (e.target as HTMLInputElement).value;
+    this.editingColor = hex;
+    if (this.editingIndex !== null && /^#[0-9A-Fa-f]{6}$/.test(hex)) {
+      this.colors[this.editingIndex] = hex;
+      this.emitColors();
+    }
+  }
+
   resetColor(idx: number) {
     this.colors[idx] = '#ffffff';
     this.emitColors();
