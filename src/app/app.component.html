@@ -1,11 +1,11 @@
 <div class="app-container" [class.sidebar-is-hidden]="!sidebarVisible">
   <button class="sidebar-toggle-btn" (click)="toggleSidebar()" aria-label="Toggle sidebar">
-    <span *ngIf="sidebarVisible">⮜</span>
-    <span *ngIf="!sidebarVisible">⮞</span>
+    <img src="arrow-left.svg" *ngIf="sidebarVisible">
+    <img src="arrow-right.svg" *ngIf="!sidebarVisible">
   </button>
   <button class="fullscreen-btn" (click)="toggleFullscreen()" aria-label="Toggle fullscreen">
-    <span *ngIf="!isFullscreen">⛶</span>
-    <span *ngIf="isFullscreen">🗗</span>
+    <img src="expand.svg" *ngIf="!isFullscreen" width="20px" height="20px">
+    <img src="shrink.svg" *ngIf="isFullscreen">
   </button>
   <app-webgl    [settings]="currentSettings"></app-webgl>
   <app-sidebar 
