@@ -63,6 +63,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   // Template references
   @ViewChild('optionsContainer', { static: true })
   optionsContainer!: ElementRef;
+  @ViewChild('fileInput')
+  fileInput!: ElementRef<HTMLInputElement>;
 
   // Use separate properties:
   inputOption: string = 'option1';      // Default for Input dropdown
@@ -174,13 +176,63 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   // Dummy actions for Import and Export
   importProject(): void {
-    console.log('Import Project clicked');
+    this.fileInput.nativeElement.click();
     this.optionsOpen = false;
   }
 
   exportProject(): void {
-    console.log('Export Project clicked');
+    const config: WebGlConfig = {
+      projectName: this.projectName,
+      templateOption: this.templateOption,
+      colors: this.colors,
+      colorEffects: this.colorEffects,
+      colorFilter: this.colorFilter,
+      shapeGeometryEffects: this.shapeGeometryEffects,
+      noiseDeformation: this.noiseDeformation,
+      motionTemporalEffects: this.motionTemporalEffects,
+      fractalKaleidoscopicEffects: this.fractalKaleidoscopicEffects,
+      textureSpecialEffects: this.textureSpecialEffects,
+      spectrumAmplitude: this.spectrumAmplitude
+    };
+    const dataStr = JSON.stringify(config, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/x-pulse' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${this.projectName || 'project'}.pulse`;
+    a.click();
+    URL.revokeObjectURL(url);
     this.optionsOpen = false;
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length) {
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const config: WebGlConfig = JSON.parse(reader.result as string);
+          this.projectName = config.projectName;
+          this.templateOption = config.templateOption;
+          this.colors = config.colors;
+          this.colorEffects = config.colorEffects;
+          this.colorFilter = config.colorFilter;
+          this.shapeGeometryEffects = config.shapeGeometryEffects;
+          this.noiseDeformation = config.noiseDeformation;
+          this.motionTemporalEffects = config.motionTemporalEffects;
+          this.fractalKaleidoscopicEffects = config.fractalKaleidoscopicEffects;
+          this.textureSpecialEffects = config.textureSpecialEffects;
+          this.spectrumAmplitude = config.spectrumAmplitude;
+          this.onChange();
+        } catch (err) {
+          console.error('Failed to import project:', err);
+        }
+      };
+      reader.readAsText(file);
+      input.value = '';
+      this.optionsOpen = false;
+    }
   }
 
   // HostListener to close the dropdown on click outside

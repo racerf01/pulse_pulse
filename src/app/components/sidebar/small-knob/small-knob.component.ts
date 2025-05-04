@@ -24,7 +24,9 @@ export class SmallKnobComponent implements OnInit, OnChanges {
   
   // Returns true if the knob is at zero (min) for styling zero-dot
   get isAtZero(): boolean {
-    return Math.abs(this.value - this.min) < 0.001;
+    // Active when within 5% threshold of 0 or 100
+    const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
+    return percent <= 5 || percent >= 95;
   }
 
   private centerX!: number;
@@ -52,7 +54,8 @@ export class SmallKnobComponent implements OnInit, OnChanges {
   startRotation(event: MouseEvent) {
     event.preventDefault();
     // Initialize tooltip value on start
-    this.displayValue = this.value;
+    const initialPercent = ((this.value - this.min) / (this.max - this.min)) * 100;
+    this.displayValue = initialPercent;
     // Show tooltip when starting rotation
     this.showTooltip = true;
     // Position initial tooltip
@@ -87,8 +90,9 @@ export class SmallKnobComponent implements OnInit, OnChanges {
     
     // Map the normalized angle to the provided min/max range.
     const mappedValue = this.mapAngleToValue(rawAngle);
-    // Update tooltip value
-    this.displayValue = mappedValue;
+    // Update tooltip value as percentage 0-100
+    const percent = ((mappedValue - this.min) / (this.max - this.min)) * 100;
+    this.displayValue = percent;
     this.valueChange.emit(mappedValue);
     // Update tooltip position near cursor
     this.tooltipX = event.clientX + 10;

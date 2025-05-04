@@ -13,7 +13,7 @@ export class MasterKnobComponent implements OnInit, OnChanges {
   @Input() value: number = 0; 
   @Output() valueChange: EventEmitter<number> = new EventEmitter<number>();
 
-  private static readonly EPS = 0.5; 
+  private static readonly EPS = 5; 
 
   angle = 0;
   
@@ -25,8 +25,9 @@ export class MasterKnobComponent implements OnInit, OnChanges {
 
   // Returns true if the knob is at zero (min) for styling the zero-dot
   get isAtZero(): boolean {
-    return this.angle < MasterKnobComponent.EPS ||
-           this.angle > 360 - MasterKnobComponent.EPS;
+    // Active when within 5% threshold of the range (<=5% or >=95%)
+    const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
+    return percent <= 5 || percent >= 95;
   }
 
   private centerX!: number;
@@ -54,7 +55,8 @@ export class MasterKnobComponent implements OnInit, OnChanges {
   startRotation(event: MouseEvent) {
     event.preventDefault();
     // Initialize tooltip value and position
-    this.displayValue = this.value;
+    const initialPercent = ((this.value - this.min) / (this.max - this.min)) * 100;
+    this.displayValue = initialPercent;
     this.tooltipX = event.clientX + 10;
     this.tooltipY = event.clientY + 10;
     this.showTooltip = true;
@@ -85,9 +87,9 @@ export class MasterKnobComponent implements OnInit, OnChanges {
     const mappedValue = this.mapAngleToValue(rawAngle);
   
     this.value = mappedValue;          // ① ← add this
-  
-    // tooltip upkeep
-    this.displayValue = mappedValue;
+    // tooltip upkeep as percentage
+    const percent = ((mappedValue - this.min) / (this.max - this.min)) * 100;
+    this.displayValue = percent;
     this.tooltipX = event.clientX + 10;
     this.tooltipY = event.clientY + 10;
   

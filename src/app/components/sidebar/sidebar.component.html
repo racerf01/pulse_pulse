@@ -382,3 +382,5 @@
     (valueChange)="updateMasterSlider($event)"
   ></app-slider>
 </div>
+
+<input type="file" #fileInput accept=".pulse" style="display: none" (change)="onFileSelected($event)" />

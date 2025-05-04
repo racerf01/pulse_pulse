@@ -24,7 +24,9 @@ export class MediumKnobComponent implements OnInit, OnChanges {
   
   // Returns true if the knob is at zero (min) for styling zero-dot
   get isAtZero(): boolean {
-    return Math.abs(this.value - this.min) < 0.001;
+    // Active when within 5% threshold of the range (<=5% or >=95%)
+    const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
+    return percent <= 5 || percent >= 95;
   }
 
   private centerX!: number;
@@ -52,7 +54,8 @@ export class MediumKnobComponent implements OnInit, OnChanges {
   startRotation(event: MouseEvent) {
     event.preventDefault();
     // Initialize tooltip value and position
-    this.displayValue = this.value;
+    const initialPercent = ((this.value - this.min) / (this.max - this.min)) * 100;
+    this.displayValue = initialPercent;
     this.tooltipX = event.clientX + 10;
     this.tooltipY = event.clientY + 10;
     this.showTooltip = true;
@@ -85,8 +88,9 @@ export class MediumKnobComponent implements OnInit, OnChanges {
     
     // Map the normalized angle to the provided min/max range.
     const mappedValue = this.mapAngleToValue(rawAngle);
-    // Update tooltip value and position
-    this.displayValue = mappedValue;
+    // Update tooltip value and position as percentage
+    const percent = ((mappedValue - this.min) / (this.max - this.min)) * 100;
+    this.displayValue = percent;
     this.tooltipX = event.clientX + 10;
     this.tooltipY = event.clientY + 10;
     this.valueChange.emit(mappedValue);
