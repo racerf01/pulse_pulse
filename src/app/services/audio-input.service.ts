@@ -26,6 +26,16 @@ export class AudioInputService {
     if (this.ctx) { return; }
 
     this.ctx = new AudioContext();
+
+    // resume audio context on any user gesture
+    const resumeOnGesture = () => {
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    };
+    document.addEventListener('click', resumeOnGesture);
+    document.addEventListener('keydown', resumeOnGesture);
+
     this.analyser = this.ctx.createAnalyser();
     this.analyser.fftSize = 512;
     this.data = new Uint8Array(this.analyser.frequencyBinCount);
@@ -44,7 +54,7 @@ export class AudioInputService {
   /** change active input */
   async setInput(kind: AudioSourceKind, file?: File): Promise<void> {
     await this.ensureContext();
-    await this.ctx.resume();                 // ← un‑suspend after user gesture
+    await this.ctx.resume();                 // ← un‑suspend after user gesture
 
     /* clean out previous nodes */
     this.mediaNode?.disconnect();
@@ -55,7 +65,7 @@ export class AudioInputService {
       /* — mic — */
       case AudioSourceKind.Microphone: {
         const stream = await navigator.mediaDevices
-                            .getUserMedia({ audio: true, video : true });
+                            .getUserMedia({ audio: true });
         this.streamNode = this.ctx.createMediaStreamSource(stream);
         this.streamNode.connect(this.analyser);
         break;
@@ -77,10 +87,10 @@ export class AudioInputService {
             this.streamNode.connect(this.analyser);
             ok = true;
           } else {
-            /* user didn’t tick audio – stop tracks and prompt again */
+            /* user didn't tick audio – stop tracks and prompt again */
             stream.getTracks().forEach(t => t.stop());
             alert('No audio track detected.\n'
-                + 'Please pick “Entire screen” or “Chrome tab” and tick “Share audio”.');
+                + 'Please pick "Entire screen" or "Chrome tab" and tick "Share audio".');
             /* loop will re‑prompt */
           }
         }

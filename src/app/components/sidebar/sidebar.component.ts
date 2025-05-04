@@ -163,9 +163,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
       option2: AudioSourceKind.File,       // "Music Import"
       option3: AudioSourceKind.System      // "Device Sounds"
     };
-    this.audioSvc.setInput(map[id]).catch(err =>
-      console.warn('Audio input rejected:', err)
-    );
+    this.audioSvc.setInput(map[id])
+      .catch(err => {
+        console.warn('Audio input rejected:', err);
+        // Prompt user to resume audio context and retry
+        if (confirm('Audio context is suspended. Click OK to resume audio.')) {
+          this.audioSvc.setInput(map[id])
+            .catch(retryErr => console.error('Retry failed:', retryErr));
+        }
+      });
   }
 
   // Dropdown open state
