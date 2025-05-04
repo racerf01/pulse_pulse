@@ -229,3 +229,26 @@
     background: #444;
 }
 
+.record-btn {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: red;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+  margin-left: -80px;
+}
+.record-btn:hover {
+  transform: scale(1.2);
+}
+.record-btn.recording {
+  background-color: darkred;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+}
+

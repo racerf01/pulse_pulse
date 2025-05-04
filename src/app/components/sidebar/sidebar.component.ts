@@ -125,6 +125,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private audioLevel: number = 0;
   private blinkRaf: any;
   private audioLevelSub?: Subscription;
+  // Recording support
+  isRecording: boolean = false;
+  private mediaRecorder?: MediaRecorder;
+  private recordedChunks: Blob[] = [];
+  private recorderMimeType?: string;
 
   ngOnInit(): void {
     this.switchInput(this.inputOption);   // start analyser on mic
@@ -373,5 +378,86 @@ export class SidebarComponent implements OnInit, OnDestroy {
   updateColors(p: string[]) {
     this.colors = p;
     this.onChange();
+  }
+
+  /** Toggle recording on or off */
+  toggleRecording(): void {
+    if (this.isRecording) {
+      this.stopRecording();
+    } else {
+      this.startRecording();
+    }
+  }
+
+  private async startRecording(): Promise<void> {
+    // Ensure system audio stream exists; only prompt if not already streaming
+    let audioStream = this.audioSvc.getSystemStream();
+    if (!audioStream) {
+      try {
+        await this.audioSvc.setInput(AudioSourceKind.System);
+      } catch (err) {
+        console.error('Failed to switch to system audio:', err);
+        alert('Unable to access internal audio for recording.');
+        return;
+      }
+      audioStream = this.audioSvc.getSystemStream();
+    }
+    if (!audioStream) {
+      alert('Internal audio stream is not available.');
+      return;
+    }
+    const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+    if (!canvas) {
+      alert('Canvas element not found');
+      return;
+    }
+    const videoStream = (canvas as any).captureStream(30);
+    // Combine video and audio tracks
+    const combinedStream = new MediaStream();
+    videoStream.getVideoTracks().forEach((track: MediaStreamTrack) => combinedStream.addTrack(track));
+    audioStream.getAudioTracks().forEach((track: MediaStreamTrack) => combinedStream.addTrack(track));
+    this.recordedChunks = [];
+    // Select a supported format: prefer MP4, then WebM
+    let mimeType = '';
+    if (MediaRecorder.isTypeSupported('video/mp4; codecs=h264')) {
+      mimeType = 'video/mp4; codecs=h264';
+    } else if (MediaRecorder.isTypeSupported('video/webm; codecs=vp9,opus')) {
+      mimeType = 'video/webm; codecs=vp9,opus';
+    } else if (MediaRecorder.isTypeSupported('video/webm; codecs=vp8,opus')) {
+      mimeType = 'video/webm; codecs=vp8,opus';
+    }
+    if (!mimeType) {
+      alert('Your browser does not support MP4 or WebM recording.');
+      return;
+    }
+    this.recorderMimeType = mimeType;
+    this.mediaRecorder = new MediaRecorder(combinedStream, { mimeType });
+    this.mediaRecorder.ondataavailable = (event) => {
+      if (event.data && event.data.size > 0) {
+        this.recordedChunks.push(event.data);
+      }
+    };
+    this.mediaRecorder.start();
+    this.isRecording = true;
+  }
+
+  private stopRecording(): void {
+    if (!this.mediaRecorder) { return; }
+    this.mediaRecorder.onstop = () => {
+      const type = this.recorderMimeType || 'video/webm';
+      const ext = type.includes('mp4') ? 'mp4' : 'webm';
+      const blob = new Blob(this.recordedChunks, { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${this.projectName || 'animation'}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+    this.mediaRecorder.stop();
+    this.isRecording = false;
   }
 }

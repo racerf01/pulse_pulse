@@ -13,6 +13,7 @@ export class AudioInputService {
 
   private mediaNode?: MediaElementAudioSourceNode | AudioBufferSourceNode;
   private streamNode?: MediaStreamAudioSourceNode;
+  private systemStream?: MediaStream;
 
   private level$ = new BehaviorSubject<number>(0);
   get audioLevel$(): Observable<number> { return this.level$.asObservable(); }
@@ -60,6 +61,7 @@ export class AudioInputService {
     this.mediaNode?.disconnect();
     this.streamNode?.disconnect();
     this.mediaNode = this.streamNode = undefined;
+    this.systemStream = undefined;
 
     switch (kind) {
       /* — mic — */
@@ -82,13 +84,14 @@ export class AudioInputService {
       
           if (stream.getAudioTracks().length) {
             /* success: wire up analyser */
-            stream.getVideoTracks().forEach(t => t.stop());
+            stream.getVideoTracks().forEach((t: MediaStreamTrack) => t.stop());
+            this.systemStream = stream;
             this.streamNode = this.ctx.createMediaStreamSource(stream);
             this.streamNode.connect(this.analyser);
             ok = true;
           } else {
             /* user didn't tick audio – stop tracks and prompt again */
-            stream.getTracks().forEach(t => t.stop());
+            stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
             alert('No audio track detected.\n'
                 + 'Please pick "Entire screen" or "Chrome tab" and tick "Share audio".');
             /* loop will re‑prompt */
@@ -127,5 +130,10 @@ export class AudioInputService {
     this.mediaNode = this.ctx.createMediaElementSource(el);
     this.mediaNode.connect(this.analyser);
     this.mediaNode.connect(this.ctx.destination);  // ← restore audibility
+  }
+
+  /** Returns the MediaStream used for system audio */
+  public getSystemStream(): MediaStream | undefined {
+    return this.systemStream;
   }
 }

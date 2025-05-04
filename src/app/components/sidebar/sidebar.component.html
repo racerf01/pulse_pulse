@@ -37,6 +37,14 @@
     <option value="option2">Music Import</option>
     <option value="option3">Device Sounds</option>
   </select>
+  <!-- Record button for system audio and canvas -->
+  <button
+    *ngIf="inputOption === 'option3'"
+    class="record-btn"
+    [class.recording]="isRecording"
+    (click)="toggleRecording()"
+    aria-label="Record toggle"
+  ></button>
 </div>
 
 <div class="sidebar-header">
