@@ -30,6 +30,7 @@
     padding: 10px;
     color: #fff;
     margin-top: 10px;
+    gap: 8px;
 }
 
 .close-icon {
@@ -316,5 +317,58 @@
   max-height: 200px;
   overflow: auto;
   margin-bottom: 10px;
+}
+
+.template-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+
+  button {
+    padding: 6px 12px;
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: var(--accent-color-hover);
+    }
+
+    &:active {
+      background-color: var(--accent-color-active);
+    }
+  }
+}
+
+.edit-template-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: -80px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 

@@ -47,6 +47,7 @@ interface WebGlConfig {
     hz15khz: number;
     master: number;
   };
+  customFragmentShader?: string;
 }
 
 @Component({
@@ -66,7 +67,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @ViewChild('fileInput')
   fileInput!: ElementRef<HTMLInputElement>;
 
-  // Modal state for custom template prompt
+  // Modal state for custom template
   showTemplateModal: boolean = false;
   templatePromptText: string = '';
 
@@ -134,6 +135,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private mediaRecorder?: MediaRecorder;
   private recordedChunks: Blob[] = [];
   private recorderMimeType?: string;
+
+  // Holds the imported/pasted custom fragment shader code
+  customFragmentShader: string = '';
 
   ngOnInit(): void {
     this.switchInput(this.inputOption);   // start analyser on mic
@@ -207,7 +211,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
       motionTemporalEffects: this.motionTemporalEffects,
       fractalKaleidoscopicEffects: this.fractalKaleidoscopicEffects,
       textureSpecialEffects: this.textureSpecialEffects,
-      spectrumAmplitude: this.spectrumAmplitude
+      spectrumAmplitude: this.spectrumAmplitude,
+      // Only include custom shader if custom template is active
+      customFragmentShader: this.templateOption === 'option4' ? this.customFragmentShader : undefined
     };
     const dataStr = JSON.stringify(config, null, 2);
     const blob = new Blob([dataStr], { type: 'application/x-pulse' });
@@ -239,9 +245,23 @@ export class SidebarComponent implements OnInit, OnDestroy {
           this.fractalKaleidoscopicEffects = config.fractalKaleidoscopicEffects;
           this.textureSpecialEffects = config.textureSpecialEffects;
           this.spectrumAmplitude = config.spectrumAmplitude;
+          
+          // Handle custom shader if it exists in the imported config
+          if (config.customFragmentShader) {
+            this.customFragmentShader = config.customFragmentShader;
+            // If template option isn't already set to custom, set it
+            if (this.templateOption !== 'option4') {
+              this.templateOption = 'option4';
+            }
+          } else {
+            // Clear custom shader if importing a non-custom template
+            this.customFragmentShader = '';
+          }
+          
           this.onChange();
         } catch (err) {
           console.error('Failed to import project:', err);
+          alert('Failed to import project. The file may be corrupted or in an invalid format.');
         }
       };
       reader.readAsText(file);
@@ -270,7 +290,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
       motionTemporalEffects: this.motionTemporalEffects,
       fractalKaleidoscopicEffects: this.fractalKaleidoscopicEffects,
       textureSpecialEffects: this.textureSpecialEffects,
-      spectrumAmplitude: this.spectrumAmplitude
+      spectrumAmplitude: this.spectrumAmplitude,
+      customFragmentShader: this.customFragmentShader
     };
     this.settingsChange.emit(cfg);
   }
@@ -287,6 +308,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.templateOption = value;
       if (value === 'option4') {
         this.showTemplateModal = true;
+      } else {
+        // Clear custom shader when switching back to default templates
+        this.customFragmentShader = '';
       }
     } else if (field === 'colorFilter') {
       this.colorFilter = value;
@@ -485,12 +509,41 @@ export class SidebarComponent implements OnInit, OnDestroy {
   applyTemplatePrompt(): void {
     console.log('Applying custom template prompt:', this.templatePromptText);
     // TODO: integrate templatePromptText into your prompt workflow
+    // Store custom shader and notify
+    this.customFragmentShader = this.templatePromptText;
     this.showTemplateModal = false;
+    this.onChange();
   }
 
   /** Cancel and close the custom prompt modal */
   closeTemplateModal(): void {
     this.showTemplateModal = false;
+    this.templatePromptText = '';
+  }
+
+  /** Copy the template prompt to clipboard */
+  copyTemplatePrompt(): void {
+    const templateText = document.querySelector('.template-example')?.textContent || '';
+    navigator.clipboard.writeText(templateText).then(() => {
+      // Optional: Show a success message
+      console.log('Template copied to clipboard');
+    }).catch(err => {
+      console.error('Failed to copy template:', err);
+    });
+  }
+
+  /** Paste content from clipboard */
+  async pasteFromClipboard(): Promise<void> {
+    try {
+      const text = await navigator.clipboard.readText();
+      this.templatePromptText = text;
+    } catch (err) {
+      console.error('Failed to paste from clipboard:', err);
+    }
+  }
+
+  /** Clear the template prompt input */
+  clearTemplatePrompt(): void {
     this.templatePromptText = '';
   }
 }

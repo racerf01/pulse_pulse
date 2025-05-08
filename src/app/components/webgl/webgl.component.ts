@@ -87,20 +87,157 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
   private freqData!: Uint8Array;
   private readonly bandFreqs = [60, 170, 400, 1000, 2500, 6000, 15000];
 
+  private customRender?: (gl: WebGLRenderingContext, program: WebGLProgram, uniforms: any, time: number, audioLevel: number, bandAmps: Float32Array, settings: any) => void;
+  private customUniforms: any;
+
   constructor(private audioSvc: AudioInputService) {}
 
   ngAfterViewInit() {
-    const canvas = this.canvasRef.nativeElement;
-    this.gl = canvas.getContext('webgl')!;
-    if (!this.gl) { console.error('WebGL not supported'); return; }
+    this.setup();
+  }
 
+  ngOnChanges(changes: SimpleChanges) {
+    const change = changes['settings'];
+    if (change && !change.firstChange) {
+      const prev = change.previousValue;
+      const curr = change.currentValue;
+      
+      // Check if template option changed or custom shader changed
+      if (curr.templateOption !== prev.templateOption || 
+          curr.customFragmentShader !== prev.customFragmentShader) {
+        console.log('Template or shader changed, reinitializing...');
+        // Clean up existing resources
+        if (this.sub) {
+          this.sub.unsubscribe();
+        }
+        if (this.program) {
+          this.gl.deleteProgram(this.program);
+        }
+        // Reinitialize WebGL
+        this.setup();
+      }
+    }
+  }
+  ngOnDestroy() { this.sub.unsubscribe(); }
+
+  private setup(): void {
+    const canvas = this.canvasRef.nativeElement;
+    
+    // 1. First ensure we can get a WebGL context
+    try {
+      // Try WebGL 2 first, fall back to WebGL 1
+      const gl = (canvas.getContext('webgl2') as WebGL2RenderingContext | null) ?? 
+                (canvas.getContext('webgl') as WebGLRenderingContext | null);
+      
+      if (!gl) {
+        throw new Error('WebGL not supported in your browser');
+      }
+
+      // Set canvas size to match display size
+      const displayWidth = canvas.clientWidth;
+      const displayHeight = canvas.clientHeight;
+      if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+        canvas.width = displayWidth;
+        canvas.height = displayHeight;
+      }
+      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+      // Store the WebGL context
+      this.gl = gl;
+
+      // 2. If we have a custom shader and templateOption is 'option4', try to load it
+      if ((this.settings as any).customFragmentShader && this.settings.templateOption === 'option4') {
+        console.log('Loading custom shader...');
+        const code = (this.settings as any).customFragmentShader;
+        const blob = new Blob([code], { type: 'application/javascript' });
+        const url = URL.createObjectURL(blob);
+        
+        import(/* webpackIgnore: true */ url).then(mod => {
+          console.log('Custom shader module loaded');
+          
+          // Get the analyser
+          const analyser = this.audioSvc.analyserNode;
+          if (!analyser) {
+            throw new Error('AnalyserNode is not initialized');
+          }
+
+          try {
+            // Initialize the custom shader
+            console.log('Initializing custom shader...');
+            const result = mod.init(this.gl, analyser, this.settings);
+            console.log('Custom shader initialized');
+            
+            this.program = result.program;
+            this.customUniforms = result.uniforms;
+            this.customRender = mod.render;
+            this.gl.useProgram(this.program);
+            
+            // Start audio and render loop
+            this.sub = this.audioSvc.audioLevel$.subscribe(l => this.audioLevel = l);
+            requestAnimationFrame(this.renderCustom);
+          } catch (error) {
+            console.error('Failed to initialize custom shader:', error);
+            this.fallbackToDefault();
+          }
+        }).catch(err => {
+          console.error('Failed to load custom shader module:', err);
+          this.fallbackToDefault();
+        });
+      } else {
+        // 3. No custom shader or not option4, use default
+        console.log('Using default shader');
+        this.initWebGL();
+        this.sub = this.audioSvc.audioLevel$.subscribe(l => this.audioLevel = l);
+        requestAnimationFrame(() => this.render());
+      }
+    } catch (error) {
+      console.error('WebGL initialization failed:', error);
+      alert('WebGL initialization failed: ' + (error instanceof Error ? error.message : String(error)));
+    }
+  }
+
+  private fallbackToDefault(): void {
+    console.log('Falling back to default shader');
+    delete this.settings.customFragmentShader;
     this.initWebGL();
     this.sub = this.audioSvc.audioLevel$.subscribe(l => this.audioLevel = l);
     requestAnimationFrame(() => this.render());
   }
 
-  ngOnChanges(_: SimpleChanges) {}
-  ngOnDestroy() { this.sub.unsubscribe(); }
+  private renderCustom = (now: number) => {
+    // Compute bandAmps as before
+    const analyser = this.audioSvc.analyserNode;
+    // ... reuse band computation from render() ...
+    const sa = this.settings.spectrumAmplitude;
+    const gains = [sa.hz60, sa.hz170, sa.hz400, sa.hz1khz, sa['hz2_5khz'], sa.hz6khz, sa.hz15khz];
+    const bandAmps = new Float32Array(7);
+    let audioVal = this.audioLevel;
+    if (analyser) {
+      const binCount = analyser.frequencyBinCount;
+      if (!this.freqData || this.freqData.length !== binCount) this.freqData = new Uint8Array(binCount);
+      analyser.getByteFrequencyData(this.freqData);
+      const binHz = analyser.context.sampleRate / analyser.fftSize;
+      let sum = 0;
+      for (let i = 0; i < this.bandFreqs.length; i++) {
+        const bin = Math.min(binCount - 1, Math.round(this.bandFreqs[i] / binHz));
+        const raw = this.freqData[bin] / 255;
+        const curved = Math.pow(raw, 1.7);
+        const amp = curved * gains[i];
+        bandAmps[i] = amp;
+        sum += curved;
+      }
+      audioVal = sum / this.bandFreqs.length;
+    }
+    const master = sa.master;
+    const scaledAudio = audioVal * master;
+    const time = now * 0.001;
+    if (this.customRender && this.gl && this.program && this.customUniforms) {
+      this.gl.useProgram(this.program);  // bind custom program each frame
+      // Pass current settings into custom render so knobs affect animation
+      this.customRender(this.gl, this.program, this.customUniforms, time, scaledAudio, bandAmps, this.settings);
+      requestAnimationFrame(this.renderCustom);
+    }
+  }
 
   private initWebGL() {
     const vs = `
@@ -112,7 +249,9 @@ export class WebglComponent implements AfterViewInit, OnChanges, OnDestroy {
       }
     `;
 
-    const fs = `
+    const fs = (this.settings.templateOption === 'option4' && this.settings.customFragmentShader)
+      ? this.settings.customFragmentShader
+      : `
       precision mediump float;
       varying vec2 v_uv;
       uniform float u_time;

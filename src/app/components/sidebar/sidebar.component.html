@@ -61,6 +61,14 @@
     <option value="option3">Pulsatic Waves</option>
     <option value="option4">Custom</option>
   </select>
+  <button 
+    *ngIf="templateOption === 'option4'"
+    class="edit-template-btn"
+    (click)="showTemplateModal = true"
+    title="Edit Custom Template"
+  >
+    <img src="edit-pencil.svg" alt="Edit Template" />
+  </button>
 </div>
 
 <div class="sidebar-header-sub" *ngIf="inputOption === 'option2'">
@@ -400,28 +408,405 @@
 <div class="template-modal-overlay" *ngIf="showTemplateModal">
   <div class="template-modal">
     <h3 style="margin-bottom: 10px;">Custom Template Prompt</h3>
-    <p style="margin-bottom: 10px;">Example prompt for ChatGPT:</p>
-    <pre class="template-example">Using JavaScript and GLSL, generate a WebGL animation that replicates the behavior of the existing WebglComponent. Provide only the following code outputs:
-1. Vertex Shader source code
-2. Fragment Shader source code
-3. JavaScript code to:
-   - Initialize a WebGL context on a fullscreen canvas
-   - Compile and link the provided shaders
-   - Create and bind a full-screen quad
-   - Set and update these uniforms each frame:
-     • float u_time (seconds)
-     • float u_audio (global amplitude)
-     • float u_hz60 … u_hz15khz and float u_masterAmp (FFT bands)
-     • float u_hueShift, u_saturation, u_brightness
-     • float u_shapeScale, u_shapeRotation, u_shapeTranslation, u_shapeDistortion, u_shapeMorphing, u_shapeRipple, u_shapeMaster
-     • float u_oscillation, u_pulsation, u_speed
-     • float u_noiseDeformation, u_fractal
-     • float u_texNoise, u_glitch, u_texturing, u_pixelation, u_mosaic, u_blend, u_masterTexture
-     • float u_colorFilterType
-     • vec3 u_color0, u_color1, u_color2, u_color3, u_color4
-   - Extract FFT data via the Web Audio API
-   - Drive the animation loop via requestAnimationFrame
-Do not include HTML or CSS; assume a &lt;canvas&gt; is already available. Only output the shaders and JS code.</pre>
+    <p style="margin-bottom: 10px;">Create a WebGL shader animation that reacts to audio. Your output must be a single JavaScript module with this exact structure:</p>
+    <div class="template-actions">
+      <button type="button" (click)="copyTemplatePrompt()">Copy Template</button>
+      <button type="button" (click)="pasteFromClipboard()">Paste from Clipboard</button>
+      <button type="button" (click)="clearTemplatePrompt()">Clear Input</button>
+    </div>
+    <pre ngNonBindable class="template-example">Create a WebGL shader animation that reacts to audio. Your output must be a single JavaScript module with this exact structure:
+
+// 1. Shader source code
+export const vertexShader = `
+  attribute vec2 a_position;
+  varying vec2 v_uv;
+  void main() {{ '{' }}
+    v_uv = a_position * 0.5 + 0.5;
+    gl_Position = vec4(a_position, 0.0, 1.0);
+  {{ '}' }}
+`;
+
+export const fragmentShader = `
+  precision mediump float;
+  varying vec2 v_uv;
+
+  // Time and Audio
+  uniform float u_time;        // Current time in seconds
+  uniform float u_audio;       // Overall audio level (0-1)
+
+  // Spectrum Analysis - Use these to create frequency-specific reactions
+  uniform float u_hz60;        // Bass frequencies (0-1)
+  uniform float u_hz170;       // Low-mid frequencies (0-1)
+  uniform float u_hz400;       // Mid frequencies (0-1)
+  uniform float u_hz1khz;      // Upper-mid frequencies (0-1)
+  uniform float u_hz2_5khz;    // Presence frequencies (0-1)
+  uniform float u_hz6khz;      // High frequencies (0-1)
+  uniform float u_hz15khz;     // Ultra-high frequencies (0-1)
+  uniform float u_masterAmp;   // Master volume control (0-1)
+
+  // Color Effects - Use these to create dynamic color changes
+  uniform float u_hueShift;    // Hue rotation (0-360)
+  uniform float u_saturation;  // Color saturation (0-2)
+  uniform float u_brightness;  // Overall brightness (0-2)
+
+  // Shape & Geometry - Use these to create dynamic shapes
+  uniform float u_shapeScale;      // Scale of shapes (0.5-5)
+  uniform float u_shapeRotation;   // Rotation in degrees (0-360)
+  uniform float u_shapeTranslation;// Position offset (-100 to 100)
+  uniform float u_shapeDistortion; // Shape distortion (0-100)
+  uniform float u_shapeMorphing;   // Shape morphing (0-100)
+  uniform float u_shapeRipple;     // Ripple effect (0-100)
+  uniform float u_shapeMaster;     // Master shape control (0-1)
+
+  // Motion & Temporal - Use these to create dynamic movement
+  uniform float u_oscillation; // Wave oscillation (0-10)
+  uniform float u_pulsation;   // Pulsing effect (0-10)
+  uniform float u_speed;       // Animation speed (0-10)
+
+  // Effects Toggles
+  uniform float u_noiseDeformation;  // Noise effect (0 or 1)
+  uniform float u_fractal;           // Fractal effect (0 or 1)
+
+  // Texture & Special Effects - Use these for visual effects
+  uniform float u_texNoise;    // Noise texture (0-100)
+  uniform float u_glitch;      // Glitch effect (0-100)
+  uniform float u_texturing;   // Texture effect (0-100)
+  uniform float u_pixelation;  // Pixelation (0-100)
+  uniform float u_mosaic;      // Mosaic effect (0-100)
+  uniform float u_blend;       // Blend mode (0-100)
+  uniform float u_masterTexture; // Master texture control (0-1)
+
+  // Color Filter
+  uniform float u_colorFilterType; // Filter type (0-14)
+
+  // Colors - Use these for your color palette
+  uniform vec3 u_color0;  // Primary color
+  uniform vec3 u_color1;  // Secondary color
+  uniform vec3 u_color2;  // Tertiary color
+  uniform vec3 u_color3;  // Quaternary color
+  uniform vec3 u_color4;  // Quinary color
+
+  void main() {{ '{' }}
+    // IMPORTANT: Your animation MUST react to audio input and respect ALL control values!
+    vec2 uv = v_uv;
+    
+    // 1. Apply shape transformations based on controls
+    // Scale
+    float scale = u_shapeScale * (1.0 + u_audio * 0.2);
+    uv = (uv - 0.5) * scale + 0.5;
+    
+    // Rotation (convert degrees to radians)
+    float angle = u_shapeRotation * 3.14159 / 180.0;
+    uv -= 0.5;
+    uv = mat2(cos(angle), -sin(angle), sin(angle), cos(angle)) * uv;
+    uv += 0.5;
+    
+    // Translation
+    uv += vec2(u_shapeTranslation * 0.01);
+    
+    // 2. Apply audio-reactive distortions
+    float distortion = u_shapeDistortion * 0.01;
+    float morphing = u_shapeMorphing * 0.01;
+    float ripple = u_shapeRipple * 0.01;
+    
+    // Bass-driven distortion
+    uv += sin(uv * 10.0 + u_time) * u_hz60 * distortion;
+    
+    // Mid-range morphing
+    uv += cos(uv * 20.0 + u_time * 2.0) * u_hz400 * morphing;
+    
+    // High-frequency ripple
+    uv += sin(uv * 30.0 + u_time * 3.0) * u_hz15khz * ripple;
+    
+    // 3. Apply noise deformation if enabled
+    if (u_noiseDeformation > 0.5) {{ '{' }}
+      float noise = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
+      uv += (noise - 0.5) * 0.1 * u_audio;
+    {{ '}' }}
+    
+    // 4. Apply fractal effect if enabled
+    if (u_fractal > 0.5) {{ '{' }}
+      uv = abs(fract(uv * 2.0) - 0.5);
+    {{ '}' }}
+    
+    // 5. Create base color with audio reactivity
+    vec3 color = mix(u_color0, u_color1, sin(u_time * u_speed + u_audio * 5.0) * 0.5 + 0.5);
+    
+    // 6. Add frequency-specific color effects
+    color += u_color2 * u_hz170 * 0.3;  // Low-mid
+    color += u_color3 * u_hz2_5khz * 0.2;  // Presence
+    color += u_color4 * u_hz6khz * 0.1;  // High
+    
+    // 7. Apply motion effects
+    float oscillation = sin(u_time * u_oscillation + u_audio * 10.0) * u_pulsation;
+    color *= 1.0 + oscillation * 0.1;
+    
+    // 8. Apply texture effects
+    if (u_texNoise > 0.0) {{ '{' }}
+      float noise = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
+      color += vec3(noise) * u_texNoise * 0.01 * u_audio;
+    {{ '}' }}
+    
+    if (u_glitch > 0.0) {{ '{' }}
+      float glitch = step(0.95, fract(u_time * 10.0)) * u_glitch * 0.01;
+      color += vec3(glitch) * u_audio;
+    {{ '}' }}
+    
+    if (u_texturing > 0.0) {{ '{' }}
+      color = floor(color * (1.0 + u_texturing * 0.1)) / (1.0 + u_texturing * 0.1);
+    {{ '}' }}
+    
+    if (u_pixelation > 0.0) {{ '{' }}
+      float pixels = 100.0 - u_pixelation;
+      uv = floor(uv * pixels) / pixels;
+    {{ '}' }}
+    
+    if (u_mosaic > 0.0) {{ '{' }}
+      float size = 10.0 - u_mosaic * 0.1;
+      uv = floor(uv * size) / size;
+    {{ '}' }}
+    
+    if (u_blend > 0.0) {{ '{' }}
+      color = mix(color, vec3(uv.x, uv.y, 1.0 - uv.x), u_blend * 0.01);
+    {{ '}' }}
+    
+    // 9. Apply color effects
+    // Hue shift
+    float hue = u_hueShift * 3.14159 / 180.0;
+    color = vec3(
+      color.r * cos(hue) - color.g * sin(hue),
+      color.r * sin(hue) + color.g * cos(hue),
+      color.b
+    );
+    
+    // Saturation
+    float gray = dot(color, vec3(0.299, 0.587, 0.114));
+    color = mix(vec3(gray), color, u_saturation);
+    
+    // Brightness
+    color *= u_brightness * (1.0 + u_audio * 0.5);
+    
+    // 10. Apply color filter
+    if (u_colorFilterType == 1.0) {{ '{' }}  // Grayscale
+      float gray = dot(color, vec3(0.299, 0.587, 0.114));
+      color = vec3(gray);
+    {{ '}' }} else if (u_colorFilterType == 2.0) {{ '{' }}  // Sepia
+      color = vec3(
+        dot(color, vec3(0.393, 0.769, 0.189)),
+        dot(color, vec3(0.349, 0.686, 0.168)),
+        dot(color, vec3(0.272, 0.534, 0.131))
+      );
+    {{ '}' }} else if (u_colorFilterType == 3.0) {{ '{' }}  // Invert
+      color = 1.0 - color;
+    {{ '}' }} else if (u_colorFilterType == 4.0) {{ '{' }}  // Brightness+
+      color = min(color * 1.3, 1.0);
+    {{ '}' }} else if (u_colorFilterType == 5.0) {{ '{' }}  // Contrast+
+      color = (color - 0.5) * 1.5 + 0.5;
+    {{ '}' }}
+    
+    // 11. Apply master texture control
+    color *= u_masterTexture;
+    
+    gl_FragColor = vec4(color, 1.0);
+  {{ '}' }}
+`;
+
+// 2. Initialize WebGL
+export function init(gl, analyser, settings) {{ '{' }}
+  // Create and compile shaders
+  const program = gl.createProgram();
+  const vShader = gl.createShader(gl.VERTEX_SHADER);
+  const fShader = gl.createShader(gl.FRAGMENT_SHADER);
+  
+  gl.shaderSource(vShader, vertexShader);
+  gl.shaderSource(fShader, fragmentShader);
+  gl.compileShader(vShader);
+  gl.compileShader(fShader);
+  
+  gl.attachShader(program, vShader);
+  gl.attachShader(program, fShader);
+  gl.linkProgram(program);
+  
+  // Create fullscreen quad
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    -1, -1,
+     1, -1,
+    -1,  1,
+    -1,  1,
+     1, -1,
+     1,  1
+  ]), gl.STATIC_DRAW);
+  
+  // Get uniform locations
+  const uniforms = {{ '{' }}
+    // Time and Audio
+    u_time: gl.getUniformLocation(program, 'u_time'),
+    u_audio: gl.getUniformLocation(program, 'u_audio'),
+
+    // Spectrum Analysis
+    u_hz60: gl.getUniformLocation(program, 'u_hz60'),
+    u_hz170: gl.getUniformLocation(program, 'u_hz170'),
+    u_hz400: gl.getUniformLocation(program, 'u_hz400'),
+    u_hz1khz: gl.getUniformLocation(program, 'u_hz1khz'),
+    u_hz2_5khz: gl.getUniformLocation(program, 'u_hz2_5khz'),
+    u_hz6khz: gl.getUniformLocation(program, 'u_hz6khz'),
+    u_hz15khz: gl.getUniformLocation(program, 'u_hz15khz'),
+    u_masterAmp: gl.getUniformLocation(program, 'u_masterAmp'),
+
+    // Color Effects
+    u_hueShift: gl.getUniformLocation(program, 'u_hueShift'),
+    u_saturation: gl.getUniformLocation(program, 'u_saturation'),
+    u_brightness: gl.getUniformLocation(program, 'u_brightness'),
+
+    // Shape & Geometry
+    u_shapeScale: gl.getUniformLocation(program, 'u_shapeScale'),
+    u_shapeRotation: gl.getUniformLocation(program, 'u_shapeRotation'),
+    u_shapeTranslation: gl.getUniformLocation(program, 'u_shapeTranslation'),
+    u_shapeDistortion: gl.getUniformLocation(program, 'u_shapeDistortion'),
+    u_shapeMorphing: gl.getUniformLocation(program, 'u_shapeMorphing'),
+    u_shapeRipple: gl.getUniformLocation(program, 'u_shapeRipple'),
+    u_shapeMaster: gl.getUniformLocation(program, 'u_shapeMaster'),
+
+    // Motion & Temporal
+    u_oscillation: gl.getUniformLocation(program, 'u_oscillation'),
+    u_pulsation: gl.getUniformLocation(program, 'u_pulsation'),
+    u_speed: gl.getUniformLocation(program, 'u_speed'),
+
+    // Effects Toggles
+    u_noiseDeformation: gl.getUniformLocation(program, 'u_noiseDeformation'),
+    u_fractal: gl.getUniformLocation(program, 'u_fractal'),
+
+    // Texture & Special Effects
+    u_texNoise: gl.getUniformLocation(program, 'u_texNoise'),
+    u_glitch: gl.getUniformLocation(program, 'u_glitch'),
+    u_texturing: gl.getUniformLocation(program, 'u_texturing'),
+    u_pixelation: gl.getUniformLocation(program, 'u_pixelation'),
+    u_mosaic: gl.getUniformLocation(program, 'u_mosaic'),
+    u_blend: gl.getUniformLocation(program, 'u_blend'),
+    u_masterTexture: gl.getUniformLocation(program, 'u_masterTexture'),
+
+    // Color Filter
+    u_colorFilterType: gl.getUniformLocation(program, 'u_colorFilterType'),
+
+    // Colors
+    u_color0: gl.getUniformLocation(program, 'u_color0'),
+    u_color1: gl.getUniformLocation(program, 'u_color1'),
+    u_color2: gl.getUniformLocation(program, 'u_color2'),
+    u_color3: gl.getUniformLocation(program, 'u_color3'),
+    u_color4: gl.getUniformLocation(program, 'u_color4')
+  {{ '}' }};
+  
+  return {{ '{' }} program, uniforms {{ '}' }};
+{{ '}' }}
+
+// 3. Render each frame
+export function render(gl, program, uniforms, time, audioLevel, bandAmps, settings) {{ '{' }}
+  gl.useProgram(program);
+  
+  // Update time and audio uniforms
+  gl.uniform1f(uniforms.u_time, time);
+  gl.uniform1f(uniforms.u_audio, audioLevel);
+  
+  // Update spectrum analysis uniforms
+  gl.uniform1f(uniforms.u_hz60, bandAmps[0]);
+  gl.uniform1f(uniforms.u_hz170, bandAmps[1]);
+  gl.uniform1f(uniforms.u_hz400, bandAmps[2]);
+  gl.uniform1f(uniforms.u_hz1khz, bandAmps[3]);
+  gl.uniform1f(uniforms.u_hz2_5khz, bandAmps[4]);
+  gl.uniform1f(uniforms.u_hz6khz, bandAmps[5]);
+  gl.uniform1f(uniforms.u_hz15khz, bandAmps[6]);
+  gl.uniform1f(uniforms.u_masterAmp, settings.spectrumAmplitude.master);
+  
+  // Update color effects uniforms
+  gl.uniform1f(uniforms.u_hueShift, settings.colorEffects.hueShift);
+  gl.uniform1f(uniforms.u_saturation, settings.colorEffects.saturation);
+  gl.uniform1f(uniforms.u_brightness, settings.colorEffects.brightness);
+  
+  // Update shape & geometry uniforms
+  gl.uniform1f(uniforms.u_shapeScale, settings.shapeGeometryEffects.scale);
+  gl.uniform1f(uniforms.u_shapeRotation, settings.shapeGeometryEffects.rotation);
+  gl.uniform1f(uniforms.u_shapeTranslation, settings.shapeGeometryEffects.translation);
+  gl.uniform1f(uniforms.u_shapeDistortion, settings.shapeGeometryEffects.distortion);
+  gl.uniform1f(uniforms.u_shapeMorphing, settings.shapeGeometryEffects.morphing);
+  gl.uniform1f(uniforms.u_shapeRipple, settings.shapeGeometryEffects.ripple);
+  gl.uniform1f(uniforms.u_shapeMaster, settings.shapeGeometryEffects.master);
+  
+  // Update motion & temporal uniforms
+  gl.uniform1f(uniforms.u_oscillation, settings.motionTemporalEffects.oscillation);
+  gl.uniform1f(uniforms.u_pulsation, settings.motionTemporalEffects.pulsation);
+  gl.uniform1f(uniforms.u_speed, settings.motionTemporalEffects.speed);
+  
+  // Update effects toggles
+  gl.uniform1f(uniforms.u_noiseDeformation, settings.noiseDeformation === 'option1' ? 1.0 : 0.0);
+  gl.uniform1f(uniforms.u_fractal, settings.fractalKaleidoscopicEffects === 'option1' ? 1.0 : 0.0);
+  
+  // Update texture & special effects uniforms
+  gl.uniform1f(uniforms.u_texNoise, settings.textureSpecialEffects.noise);
+  gl.uniform1f(uniforms.u_glitch, settings.textureSpecialEffects.glitch);
+  gl.uniform1f(uniforms.u_texturing, settings.textureSpecialEffects.texturing);
+  gl.uniform1f(uniforms.u_pixelation, settings.textureSpecialEffects.pixelation);
+  gl.uniform1f(uniforms.u_mosaic, settings.textureSpecialEffects.mosaic);
+  gl.uniform1f(uniforms.u_blend, settings.textureSpecialEffects.blend);
+  gl.uniform1f(uniforms.u_masterTexture, settings.textureSpecialEffects.master);
+  
+  // Update color filter
+  let filterType = 0.0;
+  switch (settings.colorFilter) {{ '{' }}
+    case 'none': filterType = 0.0; break;
+    case 'grayscale': filterType = 1.0; break;
+    case 'sepia': filterType = 2.0; break;
+    case 'invert': filterType = 3.0; break;
+    case 'brightnessUp': filterType = 4.0; break;
+    case 'contrastUp': filterType = 5.0; break;
+    case 'hueRotate': filterType = 6.0; break;
+    case 'posterize': filterType = 7.0; break;
+    case 'threshold': filterType = 8.0; break;
+    case 'redOnly': filterType = 9.0; break;
+    case 'greenOnly': filterType = 10.0; break;
+    case 'blueOnly': filterType = 11.0; break;
+    case 'tintBlue': filterType = 12.0; break;
+    case 'tintRed': filterType = 13.0; break;
+    case 'tintYellow': filterType = 14.0; break;
+  {{ '}' }}
+  gl.uniform1f(uniforms.u_colorFilterType, filterType);
+  
+  // Convert hex colors to RGB and update color uniforms
+  function hexToRgb(hex) {{ '{' }}
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    return [r, g, b];
+  {{ '}' }}
+  
+  gl.uniform3fv(uniforms.u_color0, hexToRgb(settings.colors[0]));
+  gl.uniform3fv(uniforms.u_color1, hexToRgb(settings.colors[1]));
+  gl.uniform3fv(uniforms.u_color2, hexToRgb(settings.colors[2]));
+  gl.uniform3fv(uniforms.u_color3, hexToRgb(settings.colors[3]));
+  gl.uniform3fv(uniforms.u_color4, hexToRgb(settings.colors[4]));
+  
+  // Draw
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+{{ '}' }}
+
+Requirements:
+1. The module must export exactly these items: vertexShader, fragmentShader, init(), and render()
+2. The init() function must:
+   - Use the provided WebGL context (gl)
+   - Create and compile the shaders
+   - Create a fullscreen quad buffer
+   - Return {{ '{' }} program, uniforms {{ '}' }}
+3. The render() function must:
+   - Use the provided WebGL context and program
+   - Update all uniforms each frame
+   - Call gl.drawArrays() to render
+4. The fragment shader must:
+   - Use all the provided uniforms
+   - Create an animation that reacts to audio
+   - Use the provided colors and effects
+
+Do not create your own WebGL context or canvas - use the ones provided in the init() and render() functions.</pre>
     <textarea [(ngModel)]="templatePromptText" placeholder="Paste your prompt here"></textarea>
     <div class="template-modal-buttons">
       <button type="button" (click)="templateFileInput.click()">Import File</button>
