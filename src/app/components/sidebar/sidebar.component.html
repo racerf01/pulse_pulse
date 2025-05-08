@@ -59,7 +59,7 @@
     <option value="option1">Pixel Grid</option>
     <option value="option2">Dark Holes</option>
     <option value="option3">Pulsatic Waves</option>
-    <!-- <option value="option4">Custom</option> -->
+    <option value="option4">Custom</option>
   </select>
 </div>
 
@@ -392,3 +392,41 @@
 </div>
 
 <input type="file" #fileInput accept=".pulse" style="display: none" (change)="onFileSelected($event)" />
+
+<!-- Hidden file input for custom template prompt -->
+<input type="file" #templateFileInput accept=".txt" style="display: none" (change)="onTemplateFileSelected($event)" />
+
+<!-- Modal overlay for custom template prompt -->
+<div class="template-modal-overlay" *ngIf="showTemplateModal">
+  <div class="template-modal">
+    <h3 style="margin-bottom: 10px;">Custom Template Prompt</h3>
+    <p style="margin-bottom: 10px;">Example prompt for ChatGPT:</p>
+    <pre class="template-example">Using JavaScript and GLSL, generate a WebGL animation that replicates the behavior of the existing WebglComponent. Provide only the following code outputs:
+1. Vertex Shader source code
+2. Fragment Shader source code
+3. JavaScript code to:
+   - Initialize a WebGL context on a fullscreen canvas
+   - Compile and link the provided shaders
+   - Create and bind a full-screen quad
+   - Set and update these uniforms each frame:
+     • float u_time (seconds)
+     • float u_audio (global amplitude)
+     • float u_hz60 … u_hz15khz and float u_masterAmp (FFT bands)
+     • float u_hueShift, u_saturation, u_brightness
+     • float u_shapeScale, u_shapeRotation, u_shapeTranslation, u_shapeDistortion, u_shapeMorphing, u_shapeRipple, u_shapeMaster
+     • float u_oscillation, u_pulsation, u_speed
+     • float u_noiseDeformation, u_fractal
+     • float u_texNoise, u_glitch, u_texturing, u_pixelation, u_mosaic, u_blend, u_masterTexture
+     • float u_colorFilterType
+     • vec3 u_color0, u_color1, u_color2, u_color3, u_color4
+   - Extract FFT data via the Web Audio API
+   - Drive the animation loop via requestAnimationFrame
+Do not include HTML or CSS; assume a &lt;canvas&gt; is already available. Only output the shaders and JS code.</pre>
+    <textarea [(ngModel)]="templatePromptText" placeholder="Paste your prompt here"></textarea>
+    <div class="template-modal-buttons">
+      <button type="button" (click)="templateFileInput.click()">Import File</button>
+      <button type="button" (click)="applyTemplatePrompt()">OK</button>
+      <button type="button" (click)="closeTemplateModal()">Cancel</button>
+    </div>
+  </div>
+</div>

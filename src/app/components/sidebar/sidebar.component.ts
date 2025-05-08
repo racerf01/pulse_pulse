@@ -66,6 +66,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @ViewChild('fileInput')
   fileInput!: ElementRef<HTMLInputElement>;
 
+  // Modal state for custom template prompt
+  showTemplateModal: boolean = false;
+  templatePromptText: string = '';
+
   // Use separate properties:
   inputOption: string = 'option1';      // Default for Input dropdown
   templateOption: string = 'option1';     // Default for Template dropdown
@@ -281,6 +285,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
       }
     } else if (field === 'templateOption') {
       this.templateOption = value;
+      if (value === 'option4') {
+        this.showTemplateModal = true;
+      }
     } else if (field === 'colorFilter') {
       this.colorFilter = value;
     } else if (field === 'noiseDeformation') {
@@ -459,5 +466,31 @@ export class SidebarComponent implements OnInit, OnDestroy {
     };
     this.mediaRecorder.stop();
     this.isRecording = false;
+  }
+
+  /** Handler for file import in modal */
+  onTemplateFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.templatePromptText = reader.result as string;
+      };
+      reader.readAsText(input.files[0]);
+      input.value = '';
+    }
+  }
+
+  /** Apply the custom prompt and close modal */
+  applyTemplatePrompt(): void {
+    console.log('Applying custom template prompt:', this.templatePromptText);
+    // TODO: integrate templatePromptText into your prompt workflow
+    this.showTemplateModal = false;
+  }
+
+  /** Cancel and close the custom prompt modal */
+  closeTemplateModal(): void {
+    this.showTemplateModal = false;
+    this.templatePromptText = '';
   }
 }
