@@ -63,6 +63,13 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "github-pages": {
+              "outputPath": {
+                "base": "docs",
+                "browser": ""
+              },
+              "baseHref": "/pulse_pulse/"
             }
           },
           "defaultConfiguration": "production"
@@ -105,5 +112,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
